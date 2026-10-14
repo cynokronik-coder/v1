@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>marketwatch</title>
+    <link rel="stylesheet" href="dashboard.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon48.png" alt="" width="28" height="28" />
+        <div>
+          <h1>marketwatch</h1>
+          <p class="tagline">Real market price of a second-hand item, and the listings well below it.</p>
+        </div>
+      </div>
+      <div class="status" id="status">
+        <span class="pill" id="pill-scan">never scanned</span>
+        <span class="pill" id="pill-next">next scan: —</span>
+        <span class="pill pill-quiet" id="pill-counts"></span>
+      </div>
+      <div class="actions">
+        <button id="scan" class="btn btn-primary">Scan now</button>
+        <button id="test-notify" class="btn">Test notification</button>
+        <button id="self-check" class="btn">Self-check</button>
+      </div>
+    </header>
+
+    <div class="banner" id="banner" hidden></div>
+
+    <main>
+      <section class="deals-panel">
+        <div class="filters">
+          <div class="tabs" id="tabs">
+            <button class="tab is-active" data-status="new">New</button>
+            <button class="tab" data-status="bought">Bought</button>
+            <button class="tab" data-status="hidden">Hidden</button>
+            <button class="tab" data-status="all">All</button>
+          </div>
+          <label class="field">
+            <span>Watch</span>
+            <select id="filter-watch"><option value="">all</option></select>
+          </label>
+          <label class="field">
+            <span>Marketplace</span>
+            <select id="filter-marketplace"><option value="">all</option></select>
+          </label>
+          <label class="field">
+            <span>Sort</span>
+            <select id="filter-sort">
+              <option value="newest">newest first</option>
+              <option value="discount">biggest discount</option>
+              <option value="price">cheapest</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>At least</span>
+            <select id="filter-discount">
+              <option value="">any discount</option>
+              <option value="0.2">20% under</option>
+              <option value="0.3">30% under</option>
+              <option value="0.4">40% under</option>
+              <option value="0.5">50% under</option>
+            </select>
+          </label>
+          <label class="field grow">
+            <span>Search</span>
+            <input id="filter-text" type="search" placeholder="title, brand, size..." />
+          </label>
+          <button id="clear-deals" class="btn" title="Delete the stored deals and empty the toolbar badge">Clear deals</button>
+        </div>
+
+        <div id="deals" class="grid"></div>
+        <p class="empty" id="deals-empty" hidden></p>
+      </section>
+
+      <aside class="side">
+        <section class="panel">
+          <h2>Watches</h2>
+          <p class="hint" id="watches-hint"></p>
+          <div id="watches"></div>
+          <div class="row">
+            <button id="add-watch" class="btn">Add a watch</button>
+            <button id="demo-watch" class="btn" title="A fake marketplace, so you can see the whole thing work offline">Try offline demo</button>
+            <button id="save-watches" class="btn btn-primary">Save watches</button>
+          </div>
+          <p class="error" id="watches-error" hidden></p>
+        </section>
+
+        <section class="panel">
+          <h2>Markets</h2>
+          <div id="markets" class="markets"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Self-check</h2>
+          <p class="hint">What actually happens when this thing talks to each marketplace, right now.</p>
+          <div id="checks" class="checks"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Activity</h2>
+          <ul id="log" class="log"></ul>
+        </section>
+      </aside>
+    </main>
+
+    <template id="deal-template">
+      <article class="card">
+        <a class="shot" target="_blank" rel="noreferrer noopener">
+          <img alt="" loading="lazy" />
+          <span class="shot-fallback">no photo</span>
+        </a>
+        <div class="body">
+          <div class="chips">
+            <span class="chip chip-deal"></span>
+            <span class="chip chip-watch"></span>
+            <span class="chip chip-market"></span>
+            <span class="chip chip-status" hidden></span>
+          </div>
+          <h3 class="title"></h3>
+          <p class="headline"></p>
+          <p class="detail"></p>
+          <p class="reasons"></p>
+          <div class="card-actions">
+            <a class="btn btn-primary open" target="_blank" rel="noreferrer noopener">Open listing</a>
+            <button class="btn act-bought">Bought</button>
+            <button class="btn act-hidden">Hide</button>
+            <button class="btn act-new" hidden>Restore</button>
+            <button class="btn act-copy">Copy link</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script type="module" src="src/dashboard.js"></script>
+  </body>
+</html>
