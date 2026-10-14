@@ -2,78 +2,219 @@
 
 Finds the listings that are actually cheap: it samples the market for a product, works
 out what the item really sells for, and tells you when something is listed well below
-that - on **Vinted** and **leboncoin**, from your own browser session.
+that - across **eleven second-hand marketplaces**, from your own browser session. A second
+page answers a different question: *which products are cheaper to buy than to resell,
+right now?*
 
-Everything runs on your machine. There is no server, no account, no telemetry, and no
-third-party API key: the extension calls the same endpoints the marketplaces' own web
-apps call, with the cookies your browser already has.
-
-The dashboard is the point: a clear list of what is worth buying, with the photo, the
-numbers behind the verdict, and a button that opens the listing so you can go and buy it.
+Everything runs on your machine. There is no server, no account, no telemetry. Two kinds
+of network call leave your browser: the marketplaces' own endpoints (or, where you choose,
+a data provider you brought a key for), and three public, key-less signal endpoints
+(Wikimedia pageviews and GDELT news attention). eBay is the one marketplace with an
+official search API, and it asks you for a free keyset if you want to use it.
 
 ## Install (2 minutes, no build step)
 
 Chrome, Edge, Brave, Vivaldi or any Chromium 120+:
 
-1. Open `chrome://extensions`.
+1. Open `chrome://extensions` (or `brave://extensions`).
 2. Turn on **Developer mode** (top right).
 3. Click **Load unpacked** and pick this `extension/` folder.
 4. The dashboard opens by itself. Click **Try offline demo** to see it work with no
-   network at all, then add a real watch.
+   network at all, then add a real watch, then read the **Sources** page.
 
 Firefox is not supported yet (it needs a different extension API surface). Safari would
 need an Xcode build; neither is worth pretending otherwise.
 
-## The 60-second tour
+After updating the code, come back to `chrome://extensions` and press **Reload** on the
+card, then reopen the dashboard.
 
-| Where | What it does |
+## The five pages
+
+| Page | What it is for |
 |---|---|
-| **Scan now** | One pass: sample the market, then look for underpriced listings. |
-| **Test notification** | Proves OS notifications work before you rely on them. |
-| **Self-check** | One real request per marketplace, and it tells you what came back. Do this first: it takes 5 seconds and it tells you whether your IP/browser is being refused. |
-| **Watches** | The products you want. One watch = one product on one marketplace. |
-| **Markets** | For each watch: the median price, the spread, how many listings were kept, and why there is (or is not) a verdict. |
-| **Activity** | A log of what happened, so a silent failure is impossible. |
+| **Deals** | The listings a watch found below its market price, with the numbers behind the verdict. Star the good ones, mark the rest bought or hidden. |
+| **Opportunities** | Products that look cheaper to buy than to resell: buy-side price, resale reference(s), fees, margin, demand, trend, confidence. |
+| **History** | Every scan pass and every opportunities run, newest first, plus a price line per watch so you can see a market move. |
+| **Sources** | Every marketplace the engine knows, how it is reached, what its terms say, and a switch for each one. Plus the optional data providers. |
+| **Settings** | Intervals, transports, eBay keys, provider keys, fees and thresholds, trend sources, and your own hot keywords. |
 
-A card appears when a listing is **`minDiscount` below the market median** *and* its
-robust z-score is at or below `maxRobustZ` (a "how unusual is this" test that stops
-one weird listing from being called a bargain). Each card shows the price, the market
-price it is compared against, the discount, why it matched, the photo, and an **Open
-listing** button. **Bought** and **Hide** keep the list honest; the toolbar badge counts
-what you have not dealt with.
+## Where the data comes from (read this before trusting the numbers)
+
+Twelve entries are registered in one file, `src/core/sources.js` (eleven real marketplaces
+plus the offline demo), and the Sources page is generated from it. Being straight about how
+each one is reached matters more than the count, so:
+
+| Source | How it is reached | Terms |
+|---|---|---|
+| **eBay** | Its **official Browse API**, with your free developer keyset | Documented API |
+| **Vinted** | The catalog endpoint its own web app calls, through your session | Unofficial: terms forbid bots/scraping |
+| **leboncoin** | Its own client's endpoints, from your tab where possible | Unofficial: `robots.txt` asks search robots not to crawl |
+| **Back Market** | The product data its search page embeds | Unofficial (its documented API is seller-only) |
+| **Fnac**, **Cdiscount** | Their public search pages | Unofficial (both document seller APIs only) |
+| **Easy Cash**, **Cash Express**, **Cash Converters** | The buy-back chains' own storefronts - the page you have open | Unofficial |
+| **momox** | Its shop pages (a hard floor on what resale can fetch) | Unofficial |
+| **Facebook Marketplace** | The page your logged-in tab is showing | **Prohibited** by Meta's terms - off by default, your call |
+| **Offline demo** | A deterministic fake marketplace | Nothing leaves your machine |
+
+**Two modes, and the difference is the point.**
+
+- `search-url` - the extension builds a search URL from the registry (or one you paste in
+  the Sources page) and fetches it: inside one of *your own tabs* on that host when you
+  have one open, otherwise from the service worker.
+- `reads your tab` (`open-tab`) - the extension **builds no URL and makes no request at
+  all**. You run the search yourself; it reads the results page you are looking at. This
+  is the default for the sites whose search is client-rendered and whose URL cannot be
+  relied on: what you see is what gets measured, and the site sees nothing it did not
+  already serve. It is also the mode to prefer when a site is hostile to automation.
+
+Failure is always explicit: a bot-protection challenge, a sign-in wall, a stale URL
+template (HTTP 404), or an HTTP 200 with no recognisable product data each raise an error
+that names which one it was and what to do instead. It never returns an empty list and
+lets you believe the market is empty, and it never invents a price.
+
+### eBay: do I need an account?
+
+- You need a **free eBay developer account** (<https://developer.ebay.com/signin>) and a
+  keyset (Client ID + Client Secret). Membership is free and there is no listing fee.
+- You do **not** need a seller account. The Browse API is a buying/search API: eBay's
+  requirements ask for a member account and a keyset, not a selling relationship. The
+  free keyset is good for roughly 5,000 calls a day.
+- Browse returns **current asking prices** for used/refurbished fixed-price listings
+  (condition and buying-format filters work), which is what a resale reference needs.
+- What it does **not** give you is sold-price history: eBay's Marketplace Insights is
+  limited-release and not open to new users. So this tool quotes asking prices, and says
+  so, instead of pretending an asking price is a sale.
+- eBay's Buy API requirements still describe production use as intended for eBay partners
+  and subject to approval - so treat your keyset as a personal one, which is exactly how
+  this extension uses it (a handful of searches per run).
+
+### Data providers: "can I connect a tool instead of scraping?"
+
+Yes - optional, bring your own key, configured in **Settings → Data providers**. Nothing
+is used until you paste a key, and your keys stay in this browser profile. Four are
+wired up:
+
+| Provider | What it adds | Notes |
+|---|---|---|
+| **Apify** | Runs a marketplace scraper ("actor") of your choosing and returns its dataset | Actor id is per-source. Its store is not an authorisation layer: pick actors you are allowed to use |
+| **SerpApi** | **Google Shopping** prices as an extra resale reference, and **Google Trends** interest for the demand signal | A third-party interface to Google data, not a Google-authorised API |
+| **Bright Data** | Fetches a marketplace page from their infrastructure; the same extractor parses it | A proxy/unlocker is not permission from the site |
+| **Keepa** | Amazon price *history* by ASIN | The one place you can see how a product actually moved over time |
+
+Two switches make them useful in practice: **Google Shopping as a resale reference** (one
+SerpApi search per product - costs money, so it is off until you ask) and **Apify fallback
+when a marketplace has no open tab and no search URL**.
+
+A vendor returning data does not change the source site's terms. That is why each provider
+lists what it covers and what it is not, and why a provider result is always labelled with
+the provider's name on the card.
+
+### What is deliberately absent
+
+**Rakuten France** - Rakuten's own page says its French marketplace ceased activity on 30
+September 2026, so there is nothing left to search there. **Amazon** - no public listing
+search API; use Keepa if you want Amazon data. And there is still no honest way to read
+"what is trending on TikTok": see the note under Opportunities.
+
+## The exact-phrase filter
+
+A watch has an **exact phrase** switch, on by default for watches created here. With it
+on, a listing only counts if its **title or description contains the whole search text, as
+consecutive whole words**:
+
+- search `iphone 13 256` → matches `iPhone 13 256 Go bon état` and `IPHONE13 256Go`, and
+  does **not** match `iPhone 13 Pro Max 256 Go`, `iPhone 130 256`, or a phone case.
+- accents and punctuation are folded, and a letter/digit boundary counts as a word
+  boundary, so `256Go` is read as `256 go`.
+- when the marketplace gives us a description, it is searched too; when a listing's
+  description is not in the payload, only the title can be checked.
+- the Activity log and the Markets panel say how many listings the gate removed, because a
+  filter that quietly empties a market is worse than no filter.
+
+`mustMatch` / `mustNotMatch` remain the tool for model-level precision (they are regexes
+against the title). A watch imported from the Python tool keeps this switch **off**,
+because that tool has no such field - tick it in the editor if you want it.
+
+## Opportunities
+
+For every product in the catalogue, one run samples both sides of the market:
+
+```
+buy side   the acquisition price: the 15th percentile of the buy-side listings inside
+           the price band (what you could realistically pay)
+resale     every reference the product declares - eBay (official API), Back Market,
+           momox, Fnac, Cdiscount, Google Shopping via SerpApi - or a price you typed in
+fees       commission + payment processing + shipping you pay, subtracted before
+           anything is called a margin
+demand     favourites per listing, listing volume, how fresh the listings are
+trend      Wikimedia pageviews for the product's article (free, key-less), optionally
+           GDELT news attention (or Google Trends via SerpApi), plus the hot keywords
+           you paste in yourself
+```
+
+**Several resale references quote the cheapest credible one, not the best.** If eBay says
+320, Back Market says 199 and momox says 180, the card quotes 180 and shows the whole
+table. The first offer that sells is the cheap one, so quoting the most flattering platform
+would invent margin that does not exist. With a single reference nothing changes.
+
+The verdict is `buy`, `watch`, `skip` or `insufficient data`, and the last one is used
+whenever the sample is too thin - a beautiful margin computed from four listings is
+labelled *not enough data* and stays that way. Every card shows its arithmetic, so you can
+disagree with the weights and still use the numbers.
+
+**What the trend column is not.** There is no API that returns "what is trending on
+TikTok", and TikTok's own terms forbid automated collection. So the trend signal is public
+interest (Wikimedia pageviews), optionally news attention (GDELT) or Google Trends (if you
+have a SerpApi key), and the keywords *you* paste into Settings. Marketplace demand - the
+favourites, the volume, the freshness - carries the most weight, because it is the only
+signal with money behind it.
+
+**Editing the catalogue.** The seed is 29 products across phones, consoles, PC parts,
+cameras, sneakers, LEGO, instruments and more. Each one declares its **buy markets** and
+its **resale references**, and the seed already spreads them across the ten marketplaces -
+phones and consoles on Vinted/leboncoin/Easy Cash, tools on leboncoin/Easy Cash/Cash
+Express, media on momox. Edit the keywords to match what you actually see; add your own;
+set a **manual resale price** when you have read the price yourself (it always wins, and
+works with no API keys at all). `estimatedRequests` in the catalogue panel tells you what
+a full run will cost in requests before you press the button.
+
+One run is slow on purpose: page sources pace themselves at 6-12 seconds per request, and
+the run stops at a request budget you can see and change (`opportunityMaxRequests`).
 
 ## Adding a watch
 
 ```yaml
-name: iphone-13-128        # anything, shows up in the list
-marketplace: vinted        # vinted | leboncoin | mock (offline demo)
-searchText: iphone 13 128  # what you would type in the site's search box
-minDiscount: 30            # percent under the market price that counts as a deal
-maxRobustZ: -1.0           # "" to turn the "unusual" test off
-minSampleSize: 8           # refuse to judge a market with fewer comparables
-plausibleMinPrice: 80      # ignore listings outside this range (parts, "for repair")
+name: iphone-13-128         # anything, shows up in the list
+marketplace: vinted         # vinted | leboncoin | ebay | backmarket | fnac | cdiscount
+                            # | easycash | cashexpress | cashconverters | momox
+                            # | facebook | mock (offline demo)
+searchText: iphone 13 128   # what you would type in the site's search box
+exactPhrase: true           # only listings that contain the whole search text
+minDiscount: 30             # percent under the market price that counts as a deal
+maxRobustZ: -1.0            # "" to turn the "unusual" test off
+minSampleSize: 8            # refuse to judge a market with fewer comparables
+plausibleMinPrice: 80       # ignore listings outside this range (parts, "for repair")
 plausibleMaxPrice: 900
-mustMatch: iphone 13       # keep the comparison pool honest - see below
+mustMatch: iphone 13        # keep the comparison pool honest - see below
 mustNotMatch: cracked, for parts
 sizes: 128 Go
-acknowledgeTerms: true     # required for vinted/leboncoin; read the section below
+conditions: très bon état   # an allowlist, edited in the watch card
+acknowledgeTerms: true      # required for the unofficial sources; see the section below
 ```
 
-The numbers that decide whether the output is meaningful are `mustMatch` /
-`mustNotMatch` / `sizes` (they define what counts as "the same product"),
-`minSampleSize`, and `minDiscount` + `maxRobustZ`. Check your settings against real
-data - the **Markets** panel shows the median and how many listings survived your
-filters, and the log tells you when a pass found nothing and why.
+For the sites that only publish a book price (Easy Cash, Cash Express, Cash Converters,
+momox) a watch is worth adding: a chain shop clearing stock is a genuine bargain when it
+lands under the market median.
 
-Config keys accept both this extension's `camelCase` and the Python tool's
-`snake_case` (`min_discount`, `plausible_min_price`, ...), so a watch from
-`config/watches.yaml` in the Python project can be pasted in as-is.
+Config keys accept both this extension's `camelCase` and the Python tool's `snake_case`
+(`min_discount`, `plausible_min_price`, ...), so a watch from `config/watches.yaml` in the
+Python project can be pasted in as-is.
 
 ## How the price is worked out
 
 1. **Sample** the search over a few pages (`samplePages`) with your filters.
-2. **Filter** to things that are plausibly the same product: not a part, not
-   "for repair", inside your price range, matching your size/condition keywords.
+2. **Filter** to things that are plausibly the same product: the exact-phrase gate, not a
+   part, not "for repair", inside your price range, matching your size/condition keywords.
 3. **Estimate** the median and the MAD (a spread measure that one crazy listing cannot
    wreck), trimming outliers 3 robust sigmas out.
 4. **Score** each fresh listing: `discount = (median - price) / median`, and
@@ -81,82 +222,148 @@ Config keys accept both this extension's `camelCase` and the Python tool's
 5. **Report** only what clears `minDiscount` *and* `maxRobustZ`, in a single currency
    (listings in another currency are never mixed into the same baseline).
 
-No machine learning, no black box: you can read the whole thing in
-`src/core/analyzer.js`, and the Python tool this was ported from has the same numbers
-checked against it (`tests/parity.test.js`).
+No machine learning, no black box: you can read the whole thing in `src/core/analyzer.js`,
+and the Python tool this was ported from has the same numbers checked against it
+(`tests/parity.test.js`).
+
+## Tab transport (and why it exists)
+
+DataDome refuses requests that look like a script rather than a browser. A request from the
+extension's service worker carries `Origin: chrome-extension://…` and
+`Sec-Fetch-Site: cross-site` - signals leboncoin's own client never sends. That is why a
+search can work in your tab and fail in the extension, even with the same cookie.
+
+So when you have **leboncoin.fr (or any other registered marketplace) open in a tab**, the
+extension asks that tab to perform the search, in the page's own context, at the same slow
+pace. It does not forge a user agent, rotate a proxy or solve a CAPTCHA: it is literally a
+request made by the page you already have open. Without such a tab it falls back to the
+JSON api and then the search page, exactly as before, and the Self-check tells you which
+transport answered.
+
+Set **leboncoin transport** in Settings to `auto` (default), `tab`, `api` or `page`. Every
+other source's mode lives on the Sources page (`auto`, `build the search URL`, `reads your
+tab`).
 
 ## Terms of use - please actually read this
 
-Vinted and leboncoin have **no public API for searching other people's listings**.
-This extension uses the same endpoints their own web apps use, with your own browser
-session, at a deliberately slow pace (about one request every 6-10 seconds). That is a
-grey area: both sites' terms forbid scraping and bots, and leboncoin's `robots.txt`
-says so explicitly.
+Most of these marketplaces have **no public API for searching other people's listings**,
+and their terms forbid scraping and bots - Vinted's terms say so explicitly, Meta's say so
+about automated collection, and leboncoin's `robots.txt` says so to crawlers. This
+extension uses the same endpoints their own web apps use, with your own browser session, at
+a deliberately slow pace (6-12 seconds per request), or reads a page you already have open.
+In France/EU that is a grey-to-contractual area rather than an open door: low-volume
+personal price research is a much better position than commercial aggregation, and it is
+still not permission.
 
 So, the deal we make:
 
-- It is **personal, low-volume use**, not a way to build a product on someone else's
-  data. Keep it to the products you are actually shopping for.
-- It **paces itself** and does not use several workers in parallel.
-- It **never solves a CAPTCHA, rotates proxies, or hides who you are**. If a
-  marketplace says no, it stops, logs it, and tells you what to do - it does not hammer
-  through the wall.
-- You can switch it off any time, and it leaves nothing behind on the marketplace side.
-- `acknowledgeTerms: true` is required before a watch on those two marketplaces will
-  run at all. It is your acknowledgement, not mine.
+- It is **personal, low-volume use**, not a way to build a product on someone else's data.
+  Keep it to the products you are actually shopping for.
+- It **paces itself**, never runs parallel workers, and the opportunities run stops after a
+  request budget you can see in Settings (`opportunityMaxRequests`).
+- It **never solves a CAPTCHA, rotates proxies, or hides who you are**. If a marketplace
+  says no, it stops, logs it, and tells you what to do.
+- It stores **no seller names, contact details, photos or addresses** - only what a price
+  comparison needs (title, price, link, condition, and the image URL for the card).
+- You can switch any source off in the Sources page, and it leaves nothing behind on the
+  marketplace side.
+- `acknowledgeTerms: true` on a watch - or the per-source **terms acknowledged** box on the
+  Sources page, or **"I accept the terms"** in Settings, which covers a whole opportunities
+  run - is required before those marketplaces are used at all. It is your acknowledgement,
+  not mine.
+- **Facebook Marketplace ships off** because Meta's terms are explicit about automated
+  collection. Turning it on is your decision, and the row tells you what that means.
 
-If a marketplace blocks you, the honest fix is: slow the interval down (Settings), and
-open that marketplace in a normal tab so the browser has a real session. If it still
-refuses, stop.
+Wikipedia pageviews (`wikimedia.org`), GDELT (`api.gdeltproject.org`) and eBay's API are
+fine: public, documented, and cheap in requests. If a marketplace blocks you, the honest
+fix is to slow the interval down, open that marketplace in a normal tab so the request can
+be made from a real session, or switch the source to *reads your tab*. If it still refuses,
+stop.
 
 ## Permissions, and why each one is needed
 
 | Permission | Why |
 |---|---|
-| `storage` | Watches, cached price baselines, the deals found and the log. Local only. |
-| `alarms` | The scheduled scan. |
+| `storage` | Watches, cached baselines, deals, history, catalogue, source settings and log. Local only. |
+| `alarms` | The scheduled scan, and the much slower scheduled opportunities run. |
 | `notifications` | Desktop alerts when a bargain appears. |
-| `tabs` | Opening a listing when you click a card or a notification. |
+| `tabs` | Opening a listing when you click a card or a notification, and finding your own marketplace tab. |
 | `cookies` | Reading the marketplace's own `anon_id` cookie - the Vinted web API rejects requests without it. Nothing is stored or sent anywhere. |
-| host access to `vinted.*` / `leboncoin.fr` | Only these sites are talked to, only for search requests. |
+| `scripting` | Running one fetch (or reading the current document) inside a tab you already have open on that marketplace. Nothing is injected into any other page. |
+| host access to the registered marketplaces, `api.ebay.com`, and the four provider hosts | Only the sites in `src/core/sources.js` plus the providers you configure. `tests/manifest.test.js` fails if a registry host is missing from the manifest. |
 
-Nothing is read from or written to any other site, and no data leaves your machine.
+Nothing is read from or written to any other site, and no data leaves your machine except
+the request you asked for.
 
 ## Troubleshooting
 
 | Symptom | What it means |
 |---|---|
-| Self-check says `MarketplaceBlocked` | The site is refusing automated-looking access from your network. Open the site in a normal tab, browse a bit, then retry. Do not retry in a loop. |
-| "no comparable listings ... all filtered out" | Your `mustMatch` / price range is too strict for that search, or the search returns parts and accessories. Loosen it or change `searchText`. |
-| "only N comparables (minSampleSize=...)" | Not enough market data to be honest about a price. Lower `minSampleSize` (and trust the verdict less) or pick a broader `searchText`. |
-| No deals for days | Normal. That is what "below market" means. Check the log line each pass: it says how many comparables were seen. If it is a lot and there are still no deals, the threshold is doing its job. |
-| Prices show a different currency than the site | The marketplace's API is pricing your session in that currency. The comparison stays consistent (one currency per baseline), and the site is the truth when you click through. |
+| A source says `needs an open tab` | That site's search is client-rendered: open it, search for the product yourself, then run. Or paste a working search URL template in the Sources page to switch it to automatic. |
+| Self-check says `MarketplaceBlocked` | The site is refusing automated-looking access from your network. Open the site in a normal tab, browse a bit, then retry - the next scan will use that tab. Do not retry in a loop. |
+| `the search URL template ... has probably gone stale` | The site changed its search path. Open the site, run the search, copy the URL, and paste it into that source's row with `{query}` where the keyword goes. |
+| `HTTP 200 but no product data could be read` | Its markup changed, or its results load client-side. Switch that source to *reads your tab*. |
+| Self-check says leboncoin is blocked even with a tab open | The block is on your network or account, not on the request shape. Stop and try later. |
+| "no comparable listings ... all filtered out" | The exact-phrase gate, your `mustMatch`, or the price range is too strict. The log says how many the phrase gate removed. |
+| "only N comparables (minSampleSize=...)" | Not enough market data to be honest about a price. Lower `minSampleSize`, or pick a broader `searchText`. |
+| eBay says it needs credentials | Paste your free keyset in Settings; a seller account is not needed, but the Browse API scope must be enabled on the keyset. |
+| Opportunities are all "not enough data" | One side of the market is thin. Widen the keyword, lower `opportunityMinConfidence`, add a resale reference, or set a manual resale price. |
+| A product shows a low resale price you disagree with | That is the conservative rule: the cheapest credible reference is quoted. Remove the reference you do not trust from the product's `also price against` field. |
+| "Back Market returned no product data" | Its markup changed or an interstitial was served. Type the price in yourself - that reference always works. |
+| No deals for days | Normal. That is what "below market" means. Check the log line each pass: it says how many comparables were seen. |
+| I edited a field and it reverted | Fixed in 0.2.0: the 5-second refresh no longer rebuilds an editor you are typing into (watch cards, catalogue rows and source rows all keep what you typed). If you see it again, it is a bug - the History page and the Activity log show what the worker thought it had. |
 
 ## Development
 
 ```bash
-npm install         # dev dependency: jsdom, for the dashboard tests only
-npm test            # 74 tests: parsers, analyzer parity, storage, service worker, UI
-npm run lint        # syntax check on every shipped file
-node live-check.mjs # optional: talks to the real Vinted/leboncoin endpoints
+npm install          # dev dependency: jsdom, for the dashboard tests only
+npm test             # 239 tests: extractors, page adapters, providers, source registry,
+                     # analyzer parity, phrase gate, adapter discipline, tab transport,
+                     # opportunity math, multi-reference resale, trends, storage, service
+                     # worker, and the dashboard rendered in jsdom
+npm run lint         # node --check on every shipped file
+node live-check.mjs  # optional: talks to the real Vinted/leboncoin endpoints
 ```
 
 Layout:
 
 ```
-manifest.json          MV3 entry point
+manifest.json          MV3 entry point (version 0.3.0)
 dashboard.html/.css    the UI you look at
-src/dashboard.js       DOM wiring only; logic lives in src/ui/
-src/background.js      service worker: alarms, scan loop, notifications, badge, message API
-src/core/models.js     data shapes + config validation
+src/dashboard.js       DOM wiring only; logic lives in src/ui/ and src/core/
+src/background.js      service worker: alarms, scan loop, opportunities run,
+                       notifications, badge, per-source settings, message API
+src/core/sources.js    THE registry: every marketplace, how it is reached, its terms,
+                       its pacing, its credentials - plus the four data providers
+src/core/models.js     data shapes + config validation (marketplace lists derived
+                       from the registry, so there is only one list)
 src/core/analyzer.js   the statistics (ported from the Python tool, parity-tested)
-src/core/adapters/     vinted.js, leboncoin.js, mock.js, base.js (pacing, errors)
-src/core/storage.js    chrome.storage + dedupe/alert rules + pruning
+                       + the exact-phrase gate
+src/core/adapters/     index.js (routing), page-source.js (the generic page adapter),
+                       html-extract.js (JSON-LD / embedded JSON / markup extraction),
+                       vinted.js, leboncoin.js (api | page | tab), ebay.js,
+                       backmarket.js, mock.js, base.js (pacing, errors)
+src/core/providers.js  Apify / SerpApi / Bright Data / Keepa connectors
+src/core/tab-transport.js  run a request - or read the document - in your own tabs
+src/core/storage.js    chrome.storage + dedupe/alert rules + history + pruning
 src/core/scan.js       one scan: baseline -> freshness -> scoring -> dedupe
+src/core/catalog.js    the product catalogue (the seed, its coverage, its validation)
+src/core/opportunity.js      fees, acquisition price, multi-reference resale, verdict
+src/core/opportunity-scan.js one opportunities run (sequential, budgeted)
+src/core/trends.js     public-interest signals (Wikimedia, GDELT, your keywords)
+src/ui/                format.js, views.js, watch-form.js - pure and tested
 ```
 
-The service worker is written as `createController({ chrome, fetchImpl })`, which is
-why the whole scan -> notify -> badge path is testable in node with a fake `chrome`,
-and the dashboard is tested by rendering the real HTML in jsdom against a fake worker.
-`tests/parity.test.js` compares the JS analyzer, scorer and both parsers against
-expected values generated by the Python implementation.
+Adding a marketplace is a **data change**, not a new file: add an entry to
+`src/core/sources.js`, add its host to `manifest.json` (the manifest test enforces both),
+and it gets an adapter, a Sources row, a tab lookup and pacing for free. Only Vinted,
+leboncoin, eBay and Back Market have dedicated adapters, because only those four need one.
+
+The service worker is written as `createController({ chrome, fetchImpl, tabTransport })`,
+which is why the whole scan -> notify -> badge path, the opportunities run, the tab
+transport and the source settings are testable in node with a fake `chrome`, and why the
+dashboard is tested by rendering the real HTML in jsdom against a fake worker - and, in
+`tests/integration.test.js`, against the real worker. `tests/parity.test.js` compares the JS
+analyzer, scorer and both parsers against expected values generated by the Python
+implementation; the new features live behind fields the Python tool does not have, so that
+comparison still means what it says.

@@ -124,6 +124,72 @@ export function titleMatches(title, watch) {
   return true;
 }
 
+// --- exact phrase ----------------------------------------------------------
+
+/**
+ * Fold text into comparable words: lowercase, accents removed, and a letter/digit
+ * boundary treated as a word boundary so "256Go" is read as "256 go" and
+ * "iPhone13" as "iphone 13". Without that step a search for "iphone 13 256"
+ * would miss the very listings a human would call an exact match.
+ */
+export function foldText(text) {
+  return String(text ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/([0-9])([a-z])/g, "$1 $2")
+    .replace(/([a-z])([0-9])/g, "$1 $2")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+export function words(text) {
+  const folded = foldText(text);
+  return folded ? folded.split(" ") : [];
+}
+
+/**
+ * Does `haystack` contain `phrase` as consecutive whole words?
+ *
+ * Whole words, not substrings, so "13" does not match "130", and consecutive, so
+ * a search for "iphone 13 256" does not match "iphone 13 pro max 256 go". This is
+ * the difference between "the listing mentions my product" and "the listing
+ * mentions some of the same words".
+ */
+export function containsPhrase(haystack, phrase) {
+  const needle = words(phrase);
+  if (needle.length === 0) return true;
+  const hay = words(haystack);
+  for (let start = 0; start + needle.length <= hay.length; start += 1) {
+    let ok = true;
+    for (let offset = 0; offset < needle.length; offset += 1) {
+      if (hay[start + offset] !== needle[offset]) {
+        ok = false;
+        break;
+      }
+    }
+    if (ok) return true;
+  }
+  return false;
+}
+
+/** Title, plus the description when the marketplace gave us one. */
+export function searchableText(listing) {
+  return [listing?.title, listing?.description].filter(Boolean).join("\n");
+}
+
+/** The phrase a watch insists on (nothing to check when the gate is off). */
+export function requiredPhrase(watch) {
+  return watch?.exactPhrase ? String(watch.searchText || "").trim() : "";
+}
+
+/** The watch's own words must appear in the listing's title or description. */
+export function phraseMatches(listing, watch) {
+  const phrase = requiredPhrase(watch);
+  if (!phrase) return true;
+  return containsPhrase(searchableText(listing), phrase);
+}
+
 /**
  * Match a size/condition against an allowlist.
  *
@@ -156,6 +222,7 @@ export function isPlausible(listing, watch) {
 /** Is this the same product? Matters for candidates as much as for the baseline. */
 export function matchesProduct(listing, watch) {
   if (!titleMatches(listing.title, watch)) return false;
+  if (!phraseMatches(listing, watch)) return false;
   if (!valueMatches(listing.size, watch.sizes)) return false;
   if (!valueMatches(listing.condition, watch.conditions)) return false;
   return true;
@@ -167,6 +234,12 @@ export function isComparable(listing, watch) {
 
 export function filterComparables(listings, watch) {
   return listings.filter((l) => isComparable(l, watch));
+}
+
+/** How many listings the exact-phrase gate alone removed from a pool. */
+export function phraseRejections(listings, watch) {
+  if (!requiredPhrase(watch)) return 0;
+  return listings.filter((l) => !phraseMatches(l, watch)).length;
 }
 
 // --- scoring ---------------------------------------------------------------
@@ -221,7 +294,14 @@ export function explainNoDeals(candidates, stats, watch, { limit = 3 } = {}) {
   if (!stats) return [];
   const matched = candidates.filter((c) => matchesProduct(c, watch) && isPlausible(c, watch));
   if (matched.length === 0) {
-    return ["no listing matched the product filters (title / size / condition / price band)"];
+    const filters = [
+      requiredPhrase(watch) ? `exact phrase "${watch.searchText}"` : null,
+      "title",
+      "size",
+      "condition",
+      "price band",
+    ].filter(Boolean);
+    return [`no listing matched the product filters (${filters.join(" / ")})`];
   }
   const sigma = robustSigmaFromStats(stats);
   const notes = [

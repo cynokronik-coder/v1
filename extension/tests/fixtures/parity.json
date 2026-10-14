@@ -1,0 +1,5647 @@
+{
+ "_generated_by": "extension/tests/fixtures/generate.py (runs the Python implementation)",
+ "_why": "the JS port must reproduce these numbers exactly",
+ "stats": [
+  {
+   "name": "single value",
+   "prices": [
+    42.0
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 1,
+    "usedSize": 1,
+    "median": 42.0,
+    "mean": 42.0,
+    "q1": 42.0,
+    "q3": 42.0,
+    "mad": 0.0,
+    "lowerFence": null
+   }
+  },
+  {
+   "name": "odd count",
+   "prices": [
+    3.0,
+    1.0,
+    2.0
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 3,
+    "usedSize": 3,
+    "median": 2.0,
+    "mean": 2.0,
+    "q1": 1.5,
+    "q3": 2.5,
+    "mad": 1.0,
+    "lowerFence": null
+   }
+  },
+  {
+   "name": "even count",
+   "prices": [
+    4.0,
+    1.0,
+    3.0,
+    2.0
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 4,
+    "usedSize": 4,
+    "median": 2.5,
+    "mean": 2.5,
+    "q1": 1.75,
+    "q3": 3.25,
+    "mad": 1.0,
+    "lowerFence": -2.75
+   }
+  },
+  {
+   "name": "flat pool (mad 0 -> sigma fallback)",
+   "prices": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 12,
+    "usedSize": 12,
+    "median": 100.0,
+    "mean": 100.0,
+    "q1": 100.0,
+    "q3": 100.0,
+    "mad": 0.0,
+    "lowerFence": 100.0
+   }
+  },
+  {
+   "name": "junk outlier is trimmed",
+   "prices": [
+    200,
+    210,
+    220,
+    190,
+    205,
+    215,
+    195,
+    225,
+    185,
+    230,
+    1.0
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 11,
+    "usedSize": 10,
+    "median": 207.5,
+    "mean": 207.5,
+    "q1": 196.25,
+    "q3": 218.75,
+    "mad": 12.5,
+    "lowerFence": 117.5
+   }
+  },
+  {
+   "name": "tiny pool is never trimmed",
+   "prices": [
+    10.0,
+    20.0,
+    30.0
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 3,
+    "usedSize": 3,
+    "median": 20.0,
+    "mean": 20.0,
+    "q1": 15.0,
+    "q3": 25.0,
+    "mad": 10.0,
+    "lowerFence": null
+   }
+  },
+  {
+   "name": "wide but honest pool",
+   "prices": [
+    50,
+    60,
+    70,
+    80,
+    90,
+    100,
+    110,
+    120,
+    130,
+    140,
+    150
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 11,
+    "usedSize": 11,
+    "median": 100.0,
+    "mean": 100.0,
+    "q1": 75.0,
+    "q3": 125.0,
+    "mad": 30.0,
+    "lowerFence": -75.0
+   }
+  },
+  {
+   "name": "200 seeded prices",
+   "prices": [
+    191.9,
+    232.71,
+    371.2,
+    196.95,
+    212.98,
+    243.21,
+    90.17,
+    214.53,
+    259.36,
+    321.33,
+    55.77,
+    135.29,
+    54.45,
+    327.66,
+    283.51,
+    35.91,
+    393.23,
+    386.61,
+    268.49,
+    253.91,
+    79.85,
+    25.7,
+    220.78,
+    42.63,
+    92.28,
+    111.94,
+    31.43,
+    196.3,
+    187.4,
+    340.12,
+    217.27,
+    263.31,
+    209.91,
+    271.73,
+    193.79,
+    125.7,
+    399.11,
+    398.36,
+    339.28,
+    288.97,
+    139.81,
+    107.27,
+    129.84,
+    46.68,
+    311.19,
+    172.15,
+    341.7,
+    166.88,
+    384.06,
+    341.98,
+    20.21,
+    99.69,
+    365.9,
+    198.6,
+    392.54,
+    171.02,
+    47.75,
+    259.19,
+    315.83,
+    122.51,
+    53.11,
+    146.38,
+    386.35,
+    308.06,
+    64.84,
+    113.63,
+    58.4,
+    42.76,
+    322.87,
+    87.52,
+    232.53,
+    190.02,
+    92.46,
+    298.12,
+    69.77,
+    264.61,
+    64.27,
+    179.89,
+    100.89,
+    122.52,
+    388.95,
+    325.3,
+    135.58,
+    356.25,
+    100.07,
+    169.82,
+    344.66,
+    263.9,
+    58.13,
+    395.93,
+    101.03,
+    118.15,
+    313.62,
+    145.0,
+    132.6,
+    47.89,
+    54.24,
+    241.44,
+    112.34,
+    248.49,
+    161.25,
+    192.22,
+    384.47,
+    203.82,
+    238.34,
+    349.28,
+    89.47,
+    78.57,
+    365.2,
+    330.76,
+    114.81,
+    92.12,
+    300.98,
+    377.35,
+    94.7,
+    381.05,
+    355.23,
+    249.34,
+    180.15,
+    59.46,
+    34.7,
+    385.82,
+    110.59,
+    287.74,
+    117.65,
+    333.01,
+    246.66,
+    131.51,
+    86.66,
+    293.73,
+    46.13,
+    106.79,
+    232.56,
+    343.91,
+    253.44,
+    126.48,
+    368.6,
+    97.51,
+    26.3,
+    122.29,
+    189.37,
+    42.97,
+    86.98,
+    160.14,
+    237.42,
+    70.0,
+    157.62,
+    358.56,
+    392.59,
+    269.63,
+    282.66,
+    242.09,
+    73.33,
+    33.33,
+    26.8,
+    365.88,
+    286.37,
+    385.85,
+    28.08,
+    261.75,
+    203.25,
+    297.59,
+    141.18,
+    399.76,
+    48.6,
+    227.52,
+    300.06,
+    362.07,
+    300.09,
+    287.4,
+    321.44,
+    367.7,
+    153.7,
+    280.36,
+    362.32,
+    351.02,
+    178.52,
+    320.4,
+    348.12,
+    237.67,
+    257.49,
+    165.29,
+    241.42,
+    251.37,
+    50.48,
+    262.97,
+    397.46,
+    354.32,
+    296.72,
+    167.61,
+    299.31,
+    240.76,
+    187.4,
+    338.58,
+    51.84,
+    305.08,
+    31.32,
+    248.49,
+    202.76,
+    107.48
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 200,
+    "usedSize": 200,
+    "median": 213.755,
+    "mean": 211.00605,
+    "q1": 107.4275,
+    "q3": 308.84250000000003,
+    "mad": 101.945,
+    "lowerFence": -496.8175000000001
+   }
+  },
+  {
+   "name": "two prices",
+   "prices": [
+    100.0,
+    300.0
+   ],
+   "currency": "EUR",
+   "expected": {
+    "sampleSize": 2,
+    "usedSize": 2,
+    "median": 200.0,
+    "mean": 200.0,
+    "q1": 150.0,
+    "q3": 250.0,
+    "mad": 100.0,
+    "lowerFence": null
+   }
+  },
+  {
+   "name": "usd pool",
+   "prices": [
+    10.0,
+    11.0,
+    12.0,
+    13.0,
+    14.0
+   ],
+   "currency": "USD",
+   "expected": {
+    "sampleSize": 5,
+    "usedSize": 5,
+    "median": 12.0,
+    "mean": 12.0,
+    "q1": 11.0,
+    "q3": 13.0,
+    "mad": 1.0,
+    "lowerFence": 5.0
+   }
+  }
+ ],
+ "deals": [
+  {
+   "name": "planted bargains are found, junk and variants are not",
+   "watch": {
+    "name": "planted bargains are found, junk and var",
+    "searchText": "thing",
+    "marketplace": "mock",
+    "mustMatch": [],
+    "mustNotMatch": [
+     "kids"
+    ],
+    "sizes": [
+     "42"
+    ],
+    "conditions": [],
+    "plausibleMinPrice": 20.0,
+    "plausibleMaxPrice": 500.0,
+    "minSampleSize": 8,
+    "minDiscount": 0.3,
+    "maxRobustZ": -1.0
+   },
+   "pool": [
+    {
+     "itemId": "std0",
+     "title": "nike air max 90 sneaker",
+     "price": 178.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std1",
+     "title": "nike air max 90 sneaker",
+     "price": 158.1,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std2",
+     "title": "nike air max 90 sneaker",
+     "price": 218.11,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std3",
+     "title": "nike air max 90 sneaker",
+     "price": 148.69,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std4",
+     "title": "nike air max 90 sneaker",
+     "price": 204.31,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std5",
+     "title": "nike air max 90 sneaker",
+     "price": 183.88,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std6",
+     "title": "nike air max 90 sneaker",
+     "price": 146.96,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std7",
+     "title": "nike air max 90 sneaker",
+     "price": 200.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std8",
+     "title": "nike air max 90 sneaker",
+     "price": 144.5,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std9",
+     "title": "nike air max 90 sneaker",
+     "price": 192.04,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std10",
+     "title": "nike air max 90 sneaker",
+     "price": 148.38,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std11",
+     "title": "nike air max 90 sneaker",
+     "price": 150.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std12",
+     "title": "nike air max 90 sneaker",
+     "price": 190.94,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std13",
+     "title": "nike air max 90 sneaker",
+     "price": 239.22,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std14",
+     "title": "nike air max 90 sneaker",
+     "price": 154.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std15",
+     "title": "nike air max 90 sneaker",
+     "price": 166.79,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std16",
+     "title": "nike air max 90 sneaker",
+     "price": 215.29,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std17",
+     "title": "nike air max 90 sneaker",
+     "price": 253.73,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std18",
+     "title": "nike air max 90 sneaker",
+     "price": 209.25,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std19",
+     "title": "nike air max 90 sneaker",
+     "price": 187.6,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std20",
+     "title": "nike air max 90 sneaker",
+     "price": 257.15,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std21",
+     "title": "nike air max 90 sneaker",
+     "price": 145.59,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std22",
+     "title": "nike air max 90 sneaker",
+     "price": 243.02,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std23",
+     "title": "nike air max 90 sneaker",
+     "price": 174.75,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "candidates": [
+    {
+     "itemId": "std0",
+     "title": "nike air max 90 sneaker",
+     "price": 178.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std1",
+     "title": "nike air max 90 sneaker",
+     "price": 158.1,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std2",
+     "title": "nike air max 90 sneaker",
+     "price": 218.11,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std3",
+     "title": "nike air max 90 sneaker",
+     "price": 148.69,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std4",
+     "title": "nike air max 90 sneaker",
+     "price": 204.31,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std5",
+     "title": "nike air max 90 sneaker",
+     "price": 183.88,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std6",
+     "title": "nike air max 90 sneaker",
+     "price": 146.96,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std7",
+     "title": "nike air max 90 sneaker",
+     "price": 200.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std8",
+     "title": "nike air max 90 sneaker",
+     "price": 144.5,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std9",
+     "title": "nike air max 90 sneaker",
+     "price": 192.04,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std10",
+     "title": "nike air max 90 sneaker",
+     "price": 148.38,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std11",
+     "title": "nike air max 90 sneaker",
+     "price": 150.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std12",
+     "title": "nike air max 90 sneaker",
+     "price": 190.94,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std13",
+     "title": "nike air max 90 sneaker",
+     "price": 239.22,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std14",
+     "title": "nike air max 90 sneaker",
+     "price": 154.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std15",
+     "title": "nike air max 90 sneaker",
+     "price": 166.79,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std16",
+     "title": "nike air max 90 sneaker",
+     "price": 215.29,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std17",
+     "title": "nike air max 90 sneaker",
+     "price": 253.73,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std18",
+     "title": "nike air max 90 sneaker",
+     "price": 209.25,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std19",
+     "title": "nike air max 90 sneaker",
+     "price": 187.6,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std20",
+     "title": "nike air max 90 sneaker",
+     "price": 257.15,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std21",
+     "title": "nike air max 90 sneaker",
+     "price": 145.59,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std22",
+     "title": "nike air max 90 sneaker",
+     "price": 243.02,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std23",
+     "title": "nike air max 90 sneaker",
+     "price": 174.75,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "bargain1",
+     "title": "nike air max 90 sneaker",
+     "price": 120.0,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "bargain2",
+     "title": "nike air max 90 sneaker",
+     "price": 100.0,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "kids",
+     "title": "nike air max 90 kids",
+     "price": 95.0,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "wrongsize",
+     "title": "nike air max 90 sneaker",
+     "price": 90.0,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "39",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "junk",
+     "title": "nike air max 90 sneaker",
+     "price": 1.0,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "expectedStats": {
+    "sampleSize": 24,
+    "usedSize": 24,
+    "median": 185.74,
+    "q1": 153.8675,
+    "q3": 210.76,
+    "mad": 30.21499999999999
+   },
+   "expectedDeals": [
+    {
+     "itemId": "bargain2",
+     "price": 100.0,
+     "marketPrice": 185.74,
+     "discountPct": 0.46161300742974054,
+     "robustZ": -1.9139777500421413
+    },
+    {
+     "itemId": "bargain1",
+     "price": 120.0,
+     "marketPrice": 185.74,
+     "discountPct": 0.35393560891568865,
+     "robustZ": -1.4675168799599998
+    }
+   ],
+   "expectedNotes": [
+    "thresholds: >= 30% under median (130.02 EUR) and z <= -1.0",
+    "closest match 100.00 EUR (46% under, z -1.91) - nike air max 90 sneaker",
+    "closest match 120.00 EUR (35% under, z -1.47) - nike air max 90 sneaker",
+    "closest match 144.50 EUR (22% under, z -0.92) - nike air max 90 sneaker"
+   ]
+  },
+  {
+   "name": "z-gate off: discount alone decides",
+   "watch": {
+    "name": "z-gate off: discount alone decides",
+    "searchText": "thing",
+    "marketplace": "mock",
+    "mustMatch": [],
+    "mustNotMatch": [],
+    "sizes": [],
+    "conditions": [],
+    "plausibleMinPrice": 50.0,
+    "plausibleMaxPrice": 2000.0,
+    "minSampleSize": 8,
+    "minDiscount": 0.25,
+    "maxRobustZ": null
+   },
+   "pool": [
+    {
+     "itemId": "g0",
+     "title": "garden table oak",
+     "price": 357.7,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g1",
+     "title": "garden table oak",
+     "price": 347.12,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g2",
+     "title": "garden table oak",
+     "price": 423.39,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g3",
+     "title": "garden table oak",
+     "price": 626.45,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g4",
+     "title": "garden table oak",
+     "price": 372.29,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g5",
+     "title": "garden table oak",
+     "price": 532.64,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g6",
+     "title": "garden table oak",
+     "price": 555.57,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g7",
+     "title": "garden table oak",
+     "price": 448.96,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g8",
+     "title": "garden table oak",
+     "price": 519.1,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g9",
+     "title": "garden table oak",
+     "price": 325.12,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g10",
+     "title": "garden table oak",
+     "price": 323.84,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g11",
+     "title": "garden table oak",
+     "price": 382.38,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g12",
+     "title": "garden table oak",
+     "price": 572.16,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g13",
+     "title": "garden table oak",
+     "price": 471.04,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g14",
+     "title": "garden table oak",
+     "price": 425.66,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g15",
+     "title": "garden table oak",
+     "price": 534.22,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g16",
+     "title": "garden table oak",
+     "price": 481.27,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g17",
+     "title": "garden table oak",
+     "price": 419.91,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g18",
+     "title": "garden table oak",
+     "price": 617.75,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g19",
+     "title": "garden table oak",
+     "price": 579.6,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "candidates": [
+    {
+     "itemId": "g0",
+     "title": "garden table oak",
+     "price": 357.7,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g1",
+     "title": "garden table oak",
+     "price": 347.12,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g2",
+     "title": "garden table oak",
+     "price": 423.39,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g3",
+     "title": "garden table oak",
+     "price": 626.45,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g4",
+     "title": "garden table oak",
+     "price": 372.29,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g5",
+     "title": "garden table oak",
+     "price": 532.64,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g6",
+     "title": "garden table oak",
+     "price": 555.57,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g7",
+     "title": "garden table oak",
+     "price": 448.96,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g8",
+     "title": "garden table oak",
+     "price": 519.1,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g9",
+     "title": "garden table oak",
+     "price": 325.12,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g10",
+     "title": "garden table oak",
+     "price": 323.84,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g11",
+     "title": "garden table oak",
+     "price": 382.38,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g12",
+     "title": "garden table oak",
+     "price": 572.16,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g13",
+     "title": "garden table oak",
+     "price": 471.04,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g14",
+     "title": "garden table oak",
+     "price": 425.66,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g15",
+     "title": "garden table oak",
+     "price": 534.22,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g16",
+     "title": "garden table oak",
+     "price": 481.27,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g17",
+     "title": "garden table oak",
+     "price": 419.91,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g18",
+     "title": "garden table oak",
+     "price": 617.75,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "g19",
+     "title": "garden table oak",
+     "price": 579.6,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "deal-a",
+     "title": "garden table oak",
+     "price": 250.0,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "deal-b",
+     "title": "garden table oak",
+     "price": 180.0,
+     "currency": "EUR",
+     "condition": "used",
+     "size": "140 cm",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "expectedStats": {
+    "sampleSize": 20,
+    "usedSize": 20,
+    "median": 460.0,
+    "q1": 379.85749999999996,
+    "q3": 539.5575,
+    "mad": 82.66499999999999
+   },
+   "expectedDeals": [
+    {
+     "itemId": "deal-b",
+     "price": 180.0,
+     "marketPrice": 460.0,
+     "discountPct": 0.6086956521739131,
+     "robustZ": -2.2846115363629913
+    },
+    {
+     "itemId": "deal-a",
+     "price": 250.0,
+     "marketPrice": 460.0,
+     "discountPct": 0.4565217391304348,
+     "robustZ": -1.7134586522722435
+    },
+    {
+     "itemId": "g10",
+     "price": 323.84,
+     "marketPrice": 460.0,
+     "discountPct": 0.29600000000000004,
+     "robustZ": -1.1109739528256606
+    },
+    {
+     "itemId": "g9",
+     "price": 325.12,
+     "marketPrice": 460.0,
+     "discountPct": 0.29321739130434776,
+     "robustZ": -1.1005300143737151
+    }
+   ],
+   "expectedNotes": [
+    "z-gate is off (discount alone decides)",
+    "closest match 180.00 EUR (61% under, z -2.28) - garden table oak",
+    "closest match 250.00 EUR (46% under, z -1.71) - garden table oak",
+    "closest match 323.84 EUR (30% under, z -1.11) - garden table oak"
+   ]
+  },
+  {
+   "name": "strict z-gate rejects a merely cheap listing",
+   "watch": {
+    "name": "strict z-gate rejects a merely cheap lis",
+    "searchText": "thing",
+    "marketplace": "mock",
+    "mustMatch": [],
+    "mustNotMatch": [],
+    "sizes": [],
+    "conditions": [],
+    "plausibleMinPrice": 20.0,
+    "plausibleMaxPrice": 900.0,
+    "minSampleSize": 8,
+    "minDiscount": 0.2,
+    "maxRobustZ": -3.0
+   },
+   "pool": [
+    {
+     "itemId": "std0",
+     "title": "nike air max 90 sneaker",
+     "price": 178.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std1",
+     "title": "nike air max 90 sneaker",
+     "price": 158.1,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std2",
+     "title": "nike air max 90 sneaker",
+     "price": 218.11,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std3",
+     "title": "nike air max 90 sneaker",
+     "price": 148.69,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std4",
+     "title": "nike air max 90 sneaker",
+     "price": 204.31,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std5",
+     "title": "nike air max 90 sneaker",
+     "price": 183.88,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std6",
+     "title": "nike air max 90 sneaker",
+     "price": 146.96,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std7",
+     "title": "nike air max 90 sneaker",
+     "price": 200.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std8",
+     "title": "nike air max 90 sneaker",
+     "price": 144.5,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std9",
+     "title": "nike air max 90 sneaker",
+     "price": 192.04,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std10",
+     "title": "nike air max 90 sneaker",
+     "price": 148.38,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std11",
+     "title": "nike air max 90 sneaker",
+     "price": 150.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std12",
+     "title": "nike air max 90 sneaker",
+     "price": 190.94,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std13",
+     "title": "nike air max 90 sneaker",
+     "price": 239.22,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std14",
+     "title": "nike air max 90 sneaker",
+     "price": 154.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std15",
+     "title": "nike air max 90 sneaker",
+     "price": 166.79,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std16",
+     "title": "nike air max 90 sneaker",
+     "price": 215.29,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std17",
+     "title": "nike air max 90 sneaker",
+     "price": 253.73,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std18",
+     "title": "nike air max 90 sneaker",
+     "price": 209.25,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std19",
+     "title": "nike air max 90 sneaker",
+     "price": 187.6,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std20",
+     "title": "nike air max 90 sneaker",
+     "price": 257.15,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std21",
+     "title": "nike air max 90 sneaker",
+     "price": 145.59,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std22",
+     "title": "nike air max 90 sneaker",
+     "price": 243.02,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std23",
+     "title": "nike air max 90 sneaker",
+     "price": 174.75,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "candidates": [
+    {
+     "itemId": "std0",
+     "title": "nike air max 90 sneaker",
+     "price": 178.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std1",
+     "title": "nike air max 90 sneaker",
+     "price": 158.1,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std2",
+     "title": "nike air max 90 sneaker",
+     "price": 218.11,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std3",
+     "title": "nike air max 90 sneaker",
+     "price": 148.69,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std4",
+     "title": "nike air max 90 sneaker",
+     "price": 204.31,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std5",
+     "title": "nike air max 90 sneaker",
+     "price": 183.88,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std6",
+     "title": "nike air max 90 sneaker",
+     "price": 146.96,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std7",
+     "title": "nike air max 90 sneaker",
+     "price": 200.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std8",
+     "title": "nike air max 90 sneaker",
+     "price": 144.5,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std9",
+     "title": "nike air max 90 sneaker",
+     "price": 192.04,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std10",
+     "title": "nike air max 90 sneaker",
+     "price": 148.38,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std11",
+     "title": "nike air max 90 sneaker",
+     "price": 150.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std12",
+     "title": "nike air max 90 sneaker",
+     "price": 190.94,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std13",
+     "title": "nike air max 90 sneaker",
+     "price": 239.22,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std14",
+     "title": "nike air max 90 sneaker",
+     "price": 154.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std15",
+     "title": "nike air max 90 sneaker",
+     "price": 166.79,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std16",
+     "title": "nike air max 90 sneaker",
+     "price": 215.29,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std17",
+     "title": "nike air max 90 sneaker",
+     "price": 253.73,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std18",
+     "title": "nike air max 90 sneaker",
+     "price": 209.25,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std19",
+     "title": "nike air max 90 sneaker",
+     "price": 187.6,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std20",
+     "title": "nike air max 90 sneaker",
+     "price": 257.15,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std21",
+     "title": "nike air max 90 sneaker",
+     "price": 145.59,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std22",
+     "title": "nike air max 90 sneaker",
+     "price": 243.02,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std23",
+     "title": "nike air max 90 sneaker",
+     "price": 174.75,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "cheapish",
+     "title": "nike air max 90 sneaker",
+     "price": 140.0,
+     "currency": "EUR",
+     "condition": null,
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "expectedStats": {
+    "sampleSize": 24,
+    "usedSize": 24,
+    "median": 185.74,
+    "q1": 153.8675,
+    "q3": 210.76,
+    "mad": 30.21499999999999
+   },
+   "expectedDeals": [],
+   "expectedNotes": [
+    "thresholds: >= 20% under median (148.59 EUR) and z <= -3.0",
+    "closest match 140.00 EUR (25% under, z -1.02) - nike air max 90 sneaker",
+    "closest match 144.50 EUR (22% under, z -0.92) - nike air max 90 sneaker",
+    "closest match 145.59 EUR (22% under, z -0.90) - nike air max 90 sneaker"
+   ]
+  },
+  {
+   "name": "thin market: below min_sample_size means no verdict",
+   "watch": {
+    "name": "thin market: below min_sample_size means",
+    "searchText": "thing",
+    "marketplace": "mock",
+    "mustMatch": [],
+    "mustNotMatch": [],
+    "sizes": [],
+    "conditions": [],
+    "plausibleMinPrice": 20.0,
+    "plausibleMaxPrice": 900.0,
+    "minSampleSize": 30,
+    "minDiscount": 0.3,
+    "maxRobustZ": -1.0
+   },
+   "pool": [
+    {
+     "itemId": "std0",
+     "title": "nike air max 90 sneaker",
+     "price": 178.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std1",
+     "title": "nike air max 90 sneaker",
+     "price": 158.1,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std2",
+     "title": "nike air max 90 sneaker",
+     "price": 218.11,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std3",
+     "title": "nike air max 90 sneaker",
+     "price": 148.69,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std4",
+     "title": "nike air max 90 sneaker",
+     "price": 204.31,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std5",
+     "title": "nike air max 90 sneaker",
+     "price": 183.88,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "candidates": [
+    {
+     "itemId": "std0",
+     "title": "nike air max 90 sneaker",
+     "price": 178.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std1",
+     "title": "nike air max 90 sneaker",
+     "price": 158.1,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std2",
+     "title": "nike air max 90 sneaker",
+     "price": 218.11,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std3",
+     "title": "nike air max 90 sneaker",
+     "price": 148.69,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std4",
+     "title": "nike air max 90 sneaker",
+     "price": 204.31,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std5",
+     "title": "nike air max 90 sneaker",
+     "price": 183.88,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "cheap",
+     "title": "nike air max 90 sneaker",
+     "price": 60.0,
+     "currency": "EUR",
+     "condition": null,
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "expectedStats": {
+    "sampleSize": 6,
+    "usedSize": 6,
+    "median": 181.37,
+    "q1": 163.29,
+    "q3": 199.20250000000001,
+    "mad": 23.105000000000004
+   },
+   "expectedDeals": [],
+   "expectedNotes": [
+    "thresholds: >= 30% under median (126.96 EUR) and z <= -1.0",
+    "closest match 60.00 EUR (67% under, z -3.54) - nike air max 90 sneaker",
+    "closest match 148.69 EUR (18% under, z -0.95) - nike air max 90 sneaker",
+    "closest match 158.10 EUR (13% under, z -0.68) - nike air max 90 sneaker"
+   ]
+  },
+  {
+   "name": "condition allowlist keeps non-comparable listings out",
+   "watch": {
+    "name": "condition allowlist keeps non-comparable",
+    "searchText": "thing",
+    "marketplace": "mock",
+    "mustMatch": [],
+    "mustNotMatch": [],
+    "sizes": [],
+    "conditions": [
+     "very good"
+    ],
+    "plausibleMinPrice": 20.0,
+    "plausibleMaxPrice": 900.0,
+    "minSampleSize": 5,
+    "minDiscount": 0.3,
+    "maxRobustZ": null
+   },
+   "pool": [
+    {
+     "itemId": "std0",
+     "title": "nike air max 90 sneaker",
+     "price": 178.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std1",
+     "title": "nike air max 90 sneaker",
+     "price": 158.1,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std2",
+     "title": "nike air max 90 sneaker",
+     "price": 218.11,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std3",
+     "title": "nike air max 90 sneaker",
+     "price": 148.69,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std4",
+     "title": "nike air max 90 sneaker",
+     "price": 204.31,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std5",
+     "title": "nike air max 90 sneaker",
+     "price": 183.88,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std6",
+     "title": "nike air max 90 sneaker",
+     "price": 146.96,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std7",
+     "title": "nike air max 90 sneaker",
+     "price": 200.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std8",
+     "title": "nike air max 90 sneaker",
+     "price": 144.5,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std9",
+     "title": "nike air max 90 sneaker",
+     "price": 192.04,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std10",
+     "title": "nike air max 90 sneaker",
+     "price": 148.38,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std11",
+     "title": "nike air max 90 sneaker",
+     "price": 150.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "candidates": [
+    {
+     "itemId": "std0",
+     "title": "nike air max 90 sneaker",
+     "price": 178.86,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std1",
+     "title": "nike air max 90 sneaker",
+     "price": 158.1,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std2",
+     "title": "nike air max 90 sneaker",
+     "price": 218.11,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std3",
+     "title": "nike air max 90 sneaker",
+     "price": 148.69,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std4",
+     "title": "nike air max 90 sneaker",
+     "price": 204.31,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std5",
+     "title": "nike air max 90 sneaker",
+     "price": 183.88,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std6",
+     "title": "nike air max 90 sneaker",
+     "price": 146.96,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std7",
+     "title": "nike air max 90 sneaker",
+     "price": 200.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std8",
+     "title": "nike air max 90 sneaker",
+     "price": 144.5,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std9",
+     "title": "nike air max 90 sneaker",
+     "price": 192.04,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std10",
+     "title": "nike air max 90 sneaker",
+     "price": 148.38,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "std11",
+     "title": "nike air max 90 sneaker",
+     "price": 150.89,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "ok-cond",
+     "title": "nike air max 90 sneaker",
+     "price": 110.0,
+     "currency": "EUR",
+     "condition": "very good",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    },
+    {
+     "itemId": "bad-cond",
+     "title": "nike air max 90 sneaker",
+     "price": 90.0,
+     "currency": "EUR",
+     "condition": "for parts",
+     "size": "42",
+     "brand": null,
+     "landedPrice": null,
+     "favourites": null,
+     "createdAt": null
+    }
+   ],
+   "expectedStats": {
+    "sampleSize": 12,
+    "usedSize": 12,
+    "median": 168.48000000000002,
+    "q1": 148.6125,
+    "q3": 194.2525,
+    "mad": 20.810000000000016
+   },
+   "expectedDeals": [
+    {
+     "itemId": "ok-cond",
+     "price": 110.0,
+     "marketPrice": 168.48000000000002,
+     "discountPct": 0.34710351377018056,
+     "robustZ": -1.8954454403744003
+    }
+   ],
+   "expectedNotes": [
+    "z-gate is off (discount alone decides)",
+    "closest match 110.00 EUR (35% under, z -1.90) - nike air max 90 sneaker",
+    "closest match 144.50 EUR (14% under, z -0.78) - nike air max 90 sneaker",
+    "closest match 146.96 EUR (13% under, z -0.70) - nike air max 90 sneaker"
+   ]
+  }
+ ],
+ "vinted": {
+  "source": "tests/fixtures/vinted_search_nike.json",
+  "payload": {
+   "items": [
+    {
+     "content_source": "search_promoted_items",
+     "favourite_count": 0,
+     "id": 10355798758,
+     "is_favourite": false,
+     "item_box": {
+      "accessibility_label": "Nike sweats, Marque: Nike, État: Neuf sans étiquette, Taille: 5 ans / 110 cm, 9.00 $, 10.15 $",
+      "exposures": [],
+      "ff_exposures": [],
+      "first_line": "Nike",
+      "item_id": 10355798758,
+      "second_line": "5 ans / 110 cm · Neuf sans étiquette"
+     },
+     "photo": {
+      "dominant_color": "#465380",
+      "dominant_color_opaque": "#C8CBD9",
+      "extra": {},
+      "full_size_url": "https://images1.vinted.net/tc/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/387fd2be.webp?s=59b5208866fb3095afd6c01a2a775fad913776aa",
+      "height": 800,
+      "high_resolution": {
+       "id": "05_00ed7_jvE3wKnh1iNpskoVeU84tb2R",
+       "orientation": null
+      },
+      "id": 1,
+      "image_no": 1,
+      "is_main": true,
+      "thumbnails": [
+       {
+        "height": 100,
+        "original_size": null,
+        "type": "thumb70x100",
+        "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/70x100/387fd2be.webp?s=a57e0d607721e4fb2078a202073c4d3006e6277e",
+        "width": 70
+       },
+       {
+        "height": 210,
+        "original_size": null,
+        "type": "thumb150x210",
+        "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/150x210/387fd2be.webp?s=d0b7f266b47ed4002693d1f8a44f06c8bbbc1c49",
+        "width": 150
+       },
+       {
+        "height": 430,
+        "original_size": null,
+        "type": "thumb310x430",
+        "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/310x430/387fd2be.webp?s=239c723d74cc7b757f9a26f5c3568dfe2450b0c5",
+        "width": 310
+       },
+       {
+        "height": 428,
+        "original_size": true,
+        "type": "thumb428x624",
+        "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/f800/387fd2be.webp?s=b99a293bb55dc1c9e138767633086a15bf15ddfa",
+        "width": 251
+       },
+       {
+        "height": 624,
+        "original_size": true,
+        "type": "thumb624x428",
+        "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/f800/387fd2be.webp?s=b99a293bb55dc1c9e138767633086a15bf15ddfa",
+        "width": 367
+       },
+       {
+        "height": 364,
+        "original_size": true,
+        "type": "thumb364x428",
+        "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/f800/387fd2be.webp?s=b99a293bb55dc1c9e138767633086a15bf15ddfa",
+        "width": 214
+       }
+      ],
+      "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/f800/387fd2be.webp?s=b99a293bb55dc1c9e138767633086a15bf15ddfa",
+      "width": 471
+     },
+     "photos": [
+      {
+       "dominant_color": "#465380",
+       "dominant_color_opaque": "#C8CBD9",
+       "extra": {},
+       "full_size_url": "https://images1.vinted.net/tc/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/387fd2be.webp?s=59b5208866fb3095afd6c01a2a775fad913776aa",
+       "height": 800,
+       "high_resolution": {
+        "id": "05_00ed7_jvE3wKnh1iNpskoVeU84tb2R",
+        "orientation": null
+       },
+       "id": 1,
+       "image_no": 1,
+       "is_main": true,
+       "thumbnails": [
+        {
+         "height": 100,
+         "original_size": null,
+         "type": "thumb70x100",
+         "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/70x100/387fd2be.webp?s=a57e0d607721e4fb2078a202073c4d3006e6277e",
+         "width": 70
+        },
+        {
+         "height": 210,
+         "original_size": null,
+         "type": "thumb150x210",
+         "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/150x210/387fd2be.webp?s=d0b7f266b47ed4002693d1f8a44f06c8bbbc1c49",
+         "width": 150
+        },
+        {
+         "height": 430,
+         "original_size": null,
+         "type": "thumb310x430",
+         "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/310x430/387fd2be.webp?s=239c723d74cc7b757f9a26f5c3568dfe2450b0c5",
+         "width": 310
+        },
+        {
+         "height": 428,
+         "original_size": true,
+         "type": "thumb428x624",
+         "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/f800/387fd2be.webp?s=b99a293bb55dc1c9e138767633086a15bf15ddfa",
+         "width": 251
+        },
+        {
+         "height": 624,
+         "original_size": true,
+         "type": "thumb624x428",
+         "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/f800/387fd2be.webp?s=b99a293bb55dc1c9e138767633086a15bf15ddfa",
+         "width": 367
+        },
+        {
+         "height": 364,
+         "original_size": true,
+         "type": "thumb364x428",
+         "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/f800/387fd2be.webp?s=b99a293bb55dc1c9e138767633086a15bf15ddfa",
+         "width": 214
+        }
+       ],
+       "url": "https://images1.vinted.net/t/05_00ed7_jvE3wKnh1iNpskoVeU84tb2R/f800/387fd2be.webp?s=b99a293bb55dc1c9e138767633086a15bf15ddfa",
+       "width": 471
+      }
+     ],
+     "price": {
+      "amount": "9.00",
+      "currency_code": "USD"
+     },
+     "promoted": true,
+     "search_tracking_params": {
+      "score": 1
+     },
+     "service_fee": {
+      "amount": "1.15",
+      "currency_code": "USD"
+     },
+     "show_1st_time_seller_discount": false,
+     "title": "Nike sweats",
+     "total_item_price": {
+      "amount": "10.15",
+      "currency_code": "USD"
+     },
+     "url": "/items/10355798758-nike-sweats",
+     "user": {
+      "business": false,
+      "id": 3182334574,
+      "login": "ctaflinger"
+     },
+     "view_count": 0
+    },
+    {
+     "content_source": "search_promoted_items",
+     "favourite_count": 2,
+     "id": 10355859358,
+     "is_favourite": false,
+     "item_box": {
+      "accessibility_label": "Nike Crewneck, Marque: Nike, État: Bon état, Taille: S / 36 / 8, 7.00 $, 8.05 $",
+      "exposures": [],
+      "ff_exposures": [],
+      "first_line": "Nike",
+      "item_id": 10355859358,
+      "second_line": "S / 36 / 8 · Bon état"
+     },
+     "photo": {
+      "dominant_color": "#A49384",
+      "dominant_color_opaque": "#E4DFDA",
+      "extra": {},
+      "full_size_url": "https://images1.vinted.net/tc/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/b3596e58.webp?s=d44b93fc4fae5b6a2b1af92ecede3febe2263627",
+      "height": 800,
+      "high_resolution": {
+       "id": "01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc",
+       "orientation": null
+      },
+      "id": 1,
+      "image_no": 1,
+      "is_main": true,
+      "thumbnails": [
+       {
+        "height": 100,
+        "original_size": null,
+        "type": "thumb70x100",
+        "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/70x100/b3596e58.webp?s=48c0b18d6f42d7782206ba1f800a735f0fdce3b3",
+        "width": 70
+       },
+       {
+        "height": 210,
+        "original_size": null,
+        "type": "thumb150x210",
+        "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/150x210/b3596e58.webp?s=614f69dc45689a73b81214415bcd404bc519e9fa",
+        "width": 150
+       },
+       {
+        "height": 430,
+        "original_size": null,
+        "type": "thumb310x430",
+        "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/310x430/b3596e58.webp?s=a937aeb92afb459d308f18899fba2d6905672661",
+        "width": 310
+       },
+       {
+        "height": 428,
+        "original_size": true,
+        "type": "thumb428x624",
+        "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/f800/b3596e58.webp?s=ae3a76a5d3e8f9eee8463ded7633aadedea4b08d",
+        "width": 321
+       },
+       {
+        "height": 624,
+        "original_size": true,
+        "type": "thumb624x428",
+        "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/f800/b3596e58.webp?s=ae3a76a5d3e8f9eee8463ded7633aadedea4b08d",
+        "width": 468
+       },
+       {
+        "height": 364,
+        "original_size": true,
+        "type": "thumb364x428",
+        "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/f800/b3596e58.webp?s=ae3a76a5d3e8f9eee8463ded7633aadedea4b08d",
+        "width": 273
+       }
+      ],
+      "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/f800/b3596e58.webp?s=ae3a76a5d3e8f9eee8463ded7633aadedea4b08d",
+      "width": 600
+     },
+     "photos": [
+      {
+       "dominant_color": "#A49384",
+       "dominant_color_opaque": "#E4DFDA",
+       "extra": {},
+       "full_size_url": "https://images1.vinted.net/tc/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/b3596e58.webp?s=d44b93fc4fae5b6a2b1af92ecede3febe2263627",
+       "height": 800,
+       "high_resolution": {
+        "id": "01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc",
+        "orientation": null
+       },
+       "id": 1,
+       "image_no": 1,
+       "is_main": true,
+       "thumbnails": [
+        {
+         "height": 100,
+         "original_size": null,
+         "type": "thumb70x100",
+         "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/70x100/b3596e58.webp?s=48c0b18d6f42d7782206ba1f800a735f0fdce3b3",
+         "width": 70
+        },
+        {
+         "height": 210,
+         "original_size": null,
+         "type": "thumb150x210",
+         "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/150x210/b3596e58.webp?s=614f69dc45689a73b81214415bcd404bc519e9fa",
+         "width": 150
+        },
+        {
+         "height": 430,
+         "original_size": null,
+         "type": "thumb310x430",
+         "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/310x430/b3596e58.webp?s=a937aeb92afb459d308f18899fba2d6905672661",
+         "width": 310
+        },
+        {
+         "height": 428,
+         "original_size": true,
+         "type": "thumb428x624",
+         "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/f800/b3596e58.webp?s=ae3a76a5d3e8f9eee8463ded7633aadedea4b08d",
+         "width": 321
+        },
+        {
+         "height": 624,
+         "original_size": true,
+         "type": "thumb624x428",
+         "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/f800/b3596e58.webp?s=ae3a76a5d3e8f9eee8463ded7633aadedea4b08d",
+         "width": 468
+        },
+        {
+         "height": 364,
+         "original_size": true,
+         "type": "thumb364x428",
+         "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/f800/b3596e58.webp?s=ae3a76a5d3e8f9eee8463ded7633aadedea4b08d",
+         "width": 273
+        }
+       ],
+       "url": "https://images1.vinted.net/t/01_000f3_SYxVnqXq1i9z4gK2HPNFeHoc/f800/b3596e58.webp?s=ae3a76a5d3e8f9eee8463ded7633aadedea4b08d",
+       "width": 600
+      }
+     ],
+     "price": {
+      "amount": "7.00",
+      "currency_code": "USD"
+     },
+     "promoted": true,
+     "search_tracking_params": {
+      "score": 0.9999989867210388
+     },
+     "service_fee": {
+      "amount": "1.05",
+      "currency_code": "USD"
+     },
+     "show_1st_time_seller_discount": false,
+     "title": "Nike Crewneck",
+     "total_item_price": {
+      "amount": "8.05",
+      "currency_code": "USD"
+     },
+     "url": "/items/10355859358-nike-crewneck",
+     "user": {
+      "business": false,
+      "id": 3194669920,
+      "login": "kadrianneclouse"
+     },
+     "view_count": 0
+    },
+    {
+     "content_source": "search_promoted_items",
+     "favourite_count": 0,
+     "id": 10355845924,
+     "is_favourite": false,
+     "item_box": {
+      "accessibility_label": "Nike sneakers Boys size 4, Marque: Nike, État: Neuf sans étiquette, Taille: 35, 20.00 $, 21.70 $",
+      "exposures": [],
+      "ff_exposures": [],
+      "first_line": "Nike",
+      "item_id": 10355845924,
+      "second_line": "35 · Neuf sans étiquette"
+     },
+     "photo": {
+      "dominant_color": "#6B6C6B",
+      "dominant_color_opaque": "#D3D3D3",
+      "extra": {},
+      "full_size_url": "https://images1.vinted.net/tc/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/72c81f45.webp?s=fca0394665466f5bd3f6c8135891b6d533f01d30",
+      "height": 800,
+      "high_resolution": {
+       "id": "06_00d78_Pce4H9WnNcCc1sKkok7BxAFY",
+       "orientation": null
+      },
+      "id": 1,
+      "image_no": 1,
+      "is_main": true,
+      "thumbnails": [
+       {
+        "height": 100,
+        "original_size": null,
+        "type": "thumb70x100",
+        "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/70x100/72c81f45.webp?s=22901cbd0a1605ab6ddb33f43deed5390470a42a",
+        "width": 70
+       },
+       {
+        "height": 210,
+        "original_size": null,
+        "type": "thumb150x210",
+        "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/150x210/72c81f45.webp?s=8088ffc1ee864fb58cd92c0a17bfef8bb10f1ad1",
+        "width": 150
+       },
+       {
+        "height": 430,
+        "original_size": null,
+        "type": "thumb310x430",
+        "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/310x430/72c81f45.webp?s=995b9a04364cad49b08d601cd15ff80892c69660",
+        "width": 310
+       },
+       {
+        "height": 428,
+        "original_size": true,
+        "type": "thumb428x624",
+        "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/f800/72c81f45.webp?s=ca081e4867f03a01fb0254b1412907279af34c38",
+        "width": 321
+       },
+       {
+        "height": 624,
+        "original_size": true,
+        "type": "thumb624x428",
+        "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/f800/72c81f45.webp?s=ca081e4867f03a01fb0254b1412907279af34c38",
+        "width": 468
+       },
+       {
+        "height": 364,
+        "original_size": true,
+        "type": "thumb364x428",
+        "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/f800/72c81f45.webp?s=ca081e4867f03a01fb0254b1412907279af34c38",
+        "width": 273
+       }
+      ],
+      "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/f800/72c81f45.webp?s=ca081e4867f03a01fb0254b1412907279af34c38",
+      "width": 600
+     },
+     "photos": [
+      {
+       "dominant_color": "#6B6C6B",
+       "dominant_color_opaque": "#D3D3D3",
+       "extra": {},
+       "full_size_url": "https://images1.vinted.net/tc/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/72c81f45.webp?s=fca0394665466f5bd3f6c8135891b6d533f01d30",
+       "height": 800,
+       "high_resolution": {
+        "id": "06_00d78_Pce4H9WnNcCc1sKkok7BxAFY",
+        "orientation": null
+       },
+       "id": 1,
+       "image_no": 1,
+       "is_main": true,
+       "thumbnails": [
+        {
+         "height": 100,
+         "original_size": null,
+         "type": "thumb70x100",
+         "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/70x100/72c81f45.webp?s=22901cbd0a1605ab6ddb33f43deed5390470a42a",
+         "width": 70
+        },
+        {
+         "height": 210,
+         "original_size": null,
+         "type": "thumb150x210",
+         "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/150x210/72c81f45.webp?s=8088ffc1ee864fb58cd92c0a17bfef8bb10f1ad1",
+         "width": 150
+        },
+        {
+         "height": 430,
+         "original_size": null,
+         "type": "thumb310x430",
+         "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/310x430/72c81f45.webp?s=995b9a04364cad49b08d601cd15ff80892c69660",
+         "width": 310
+        },
+        {
+         "height": 428,
+         "original_size": true,
+         "type": "thumb428x624",
+         "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/f800/72c81f45.webp?s=ca081e4867f03a01fb0254b1412907279af34c38",
+         "width": 321
+        },
+        {
+         "height": 624,
+         "original_size": true,
+         "type": "thumb624x428",
+         "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/f800/72c81f45.webp?s=ca081e4867f03a01fb0254b1412907279af34c38",
+         "width": 468
+        },
+        {
+         "height": 364,
+         "original_size": true,
+         "type": "thumb364x428",
+         "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/f800/72c81f45.webp?s=ca081e4867f03a01fb0254b1412907279af34c38",
+         "width": 273
+        }
+       ],
+       "url": "https://images1.vinted.net/t/06_00d78_Pce4H9WnNcCc1sKkok7BxAFY/f800/72c81f45.webp?s=ca081e4867f03a01fb0254b1412907279af34c38",
+       "width": 600
+      }
+     ],
+     "price": {
+      "amount": "20.00",
+      "currency_code": "USD"
+     },
+     "promoted": true,
+     "search_tracking_params": {
+      "score": 0.9999979734420776
+     },
+     "service_fee": {
+      "amount": "1.70",
+      "currency_code": "USD"
+     },
+     "show_1st_time_seller_discount": false,
+     "title": "Nike sneakers Boys size 4",
+     "total_item_price": {
+      "amount": "21.70",
+      "currency_code": "USD"
+     },
+     "url": "/items/10355845924-nike-sneakers-boys-size-4",
+     "user": {
+      "business": false,
+      "id": 3189285225,
+      "login": "jellybean467"
+     },
+     "view_count": 0
+    },
+    {
+     "content_source": "search_promoted_items",
+     "favourite_count": 17,
+     "id": 10355785657,
+     "is_favourite": false,
+     "item_box": {
+      "accessibility_label": "2T Nike Jacket, Marque: Nike, État: Très bon état, Taille: 18-24 mois / 86 cm, 6.00 $, 7.00 $",
+      "exposures": [],
+      "ff_exposures": [],
+      "first_line": "Nike",
+      "item_id": 10355785657,
+      "second_line": "18-24 mois / 86 cm · Très bon état"
+     },
+     "photo": {
+      "dominant_color": "#545252",
+      "dominant_color_opaque": "#CCCBCB",
+      "extra": {},
+      "full_size_url": "https://images1.vinted.net/tc/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/c5466186.webp?s=efbb867d11495ca3465d1be4c5e82428a1d9e003",
+      "height": 600,
+      "high_resolution": {
+       "id": "02_00c87_wHiSV84aj4kRX6NEUUDGhb3r",
+       "orientation": null
+      },
+      "id": 1,
+      "image_no": 1,
+      "is_main": true,
+      "thumbnails": [
+       {
+        "height": 100,
+        "original_size": null,
+        "type": "thumb70x100",
+        "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/70x100/c5466186.webp?s=8d22cc943cc60a944d1e274e8b20f0fc8f25f51d",
+        "width": 70
+       },
+       {
+        "height": 210,
+        "original_size": null,
+        "type": "thumb150x210",
+        "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/150x210/c5466186.webp?s=32d01ddffb6b42a1eaf7e1e6e47e3387e9f698db",
+        "width": 150
+       },
+       {
+        "height": 430,
+        "original_size": null,
+        "type": "thumb310x430",
+        "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/310x430/c5466186.webp?s=0e2b23025a3e97696741b9ebdce3bc353cfda3d2",
+        "width": 310
+       },
+       {
+        "height": 321,
+        "original_size": true,
+        "type": "thumb428x624",
+        "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/f800/c5466186.webp?s=10ea861b17b4af59c3f918fd858a1a087e0dd2c2",
+        "width": 428
+       },
+       {
+        "height": 468,
+        "original_size": true,
+        "type": "thumb624x428",
+        "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/f800/c5466186.webp?s=10ea861b17b4af59c3f918fd858a1a087e0dd2c2",
+        "width": 624
+       },
+       {
+        "height": 273,
+        "original_size": true,
+        "type": "thumb364x428",
+        "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/f800/c5466186.webp?s=10ea861b17b4af59c3f918fd858a1a087e0dd2c2",
+        "width": 364
+       }
+      ],
+      "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/f800/c5466186.webp?s=10ea861b17b4af59c3f918fd858a1a087e0dd2c2",
+      "width": 800
+     },
+     "photos": [
+      {
+       "dominant_color": "#545252",
+       "dominant_color_opaque": "#CCCBCB",
+       "extra": {},
+       "full_size_url": "https://images1.vinted.net/tc/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/c5466186.webp?s=efbb867d11495ca3465d1be4c5e82428a1d9e003",
+       "height": 600,
+       "high_resolution": {
+        "id": "02_00c87_wHiSV84aj4kRX6NEUUDGhb3r",
+        "orientation": null
+       },
+       "id": 1,
+       "image_no": 1,
+       "is_main": true,
+       "thumbnails": [
+        {
+         "height": 100,
+         "original_size": null,
+         "type": "thumb70x100",
+         "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/70x100/c5466186.webp?s=8d22cc943cc60a944d1e274e8b20f0fc8f25f51d",
+         "width": 70
+        },
+        {
+         "height": 210,
+         "original_size": null,
+         "type": "thumb150x210",
+         "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/150x210/c5466186.webp?s=32d01ddffb6b42a1eaf7e1e6e47e3387e9f698db",
+         "width": 150
+        },
+        {
+         "height": 430,
+         "original_size": null,
+         "type": "thumb310x430",
+         "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/310x430/c5466186.webp?s=0e2b23025a3e97696741b9ebdce3bc353cfda3d2",
+         "width": 310
+        },
+        {
+         "height": 321,
+         "original_size": true,
+         "type": "thumb428x624",
+         "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/f800/c5466186.webp?s=10ea861b17b4af59c3f918fd858a1a087e0dd2c2",
+         "width": 428
+        },
+        {
+         "height": 468,
+         "original_size": true,
+         "type": "thumb624x428",
+         "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/f800/c5466186.webp?s=10ea861b17b4af59c3f918fd858a1a087e0dd2c2",
+         "width": 624
+        },
+        {
+         "height": 273,
+         "original_size": true,
+         "type": "thumb364x428",
+         "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/f800/c5466186.webp?s=10ea861b17b4af59c3f918fd858a1a087e0dd2c2",
+         "width": 364
+        }
+       ],
+       "url": "https://images1.vinted.net/t/02_00c87_wHiSV84aj4kRX6NEUUDGhb3r/f800/c5466186.webp?s=10ea861b17b4af59c3f918fd858a1a087e0dd2c2",
+       "width": 800
+      }
+     ],
+     "price": {
+      "amount": "6.00",
+      "currency_code": "USD"
+     },
+     "promoted": true,
+     "search_tracking_params": {
+      "score": 0.9999970197677612
+     },
+     "service_fee": {
+      "amount": "1.00",
+      "currency_code": "USD"
+     },
+     "show_1st_time_seller_discount": false,
+     "title": "2T Nike Jacket",
+     "total_item_price": {
+      "amount": "7.00",
+      "currency_code": "USD"
+     },
+     "url": "/items/10355785657-2t-nike-jacket",
+     "user": {
+      "business": false,
+      "id": 3194004901,
+      "login": "lherman23"
+     },
+     "view_count": 0
+    },
+    {
+     "content_source": "search_promoted_items",
+     "favourite_count": 0,
+     "id": 10355609852,
+     "is_favourite": false,
+     "item_box": {
+      "accessibility_label": "Nike Kids Windbreaker Jacket, Marque: Nike, État: Bon état, Taille: 5 ans / 110 cm, 8.00 $, 9.10 $",
+      "exposures": [],
+      "ff_exposures": [],
+      "first_line": "Nike",
+      "item_id": 10355609852,
+      "second_line": "5 ans / 110 cm · Bon état"
+     },
+     "photo": {
+      "dominant_color": "#2D2C2B",
+      "dominant_color_opaque": "#C0C0BF",
+      "extra": {},
+      "full_size_url": "https://images1.vinted.net/tc/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/c2ef226f.webp?s=78e48c5124af1cd868a2aec6d95304576635291f",
+      "height": 800,
+      "high_resolution": {
+       "id": "05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M",
+       "orientation": null
+      },
+      "id": 1,
+      "image_no": 1,
+      "is_main": true,
+      "thumbnails": [
+       {
+        "height": 100,
+        "original_size": null,
+        "type": "thumb70x100",
+        "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/70x100/c2ef226f.webp?s=9ecb96bb9617af858418b946ea9b83595f1e050f",
+        "width": 70
+       },
+       {
+        "height": 210,
+        "original_size": null,
+        "type": "thumb150x210",
+        "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/150x210/c2ef226f.webp?s=6994d91dcbfff4857339d88a48370f542baab6d5",
+        "width": 150
+       },
+       {
+        "height": 430,
+        "original_size": null,
+        "type": "thumb310x430",
+        "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/310x430/c2ef226f.webp?s=3966ad1689e0d542b409433f67d07e51f186121a",
+        "width": 310
+       },
+       {
+        "height": 428,
+        "original_size": true,
+        "type": "thumb428x624",
+        "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/f800/c2ef226f.webp?s=01c4f2cf180f3ac3c4c765b90228abd8e3051c7b",
+        "width": 321
+       },
+       {
+        "height": 624,
+        "original_size": true,
+        "type": "thumb624x428",
+        "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/f800/c2ef226f.webp?s=01c4f2cf180f3ac3c4c765b90228abd8e3051c7b",
+        "width": 468
+       },
+       {
+        "height": 364,
+        "original_size": true,
+        "type": "thumb364x428",
+        "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/f800/c2ef226f.webp?s=01c4f2cf180f3ac3c4c765b90228abd8e3051c7b",
+        "width": 273
+       }
+      ],
+      "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/f800/c2ef226f.webp?s=01c4f2cf180f3ac3c4c765b90228abd8e3051c7b",
+      "width": 600
+     },
+     "photos": [
+      {
+       "dominant_color": "#2D2C2B",
+       "dominant_color_opaque": "#C0C0BF",
+       "extra": {},
+       "full_size_url": "https://images1.vinted.net/tc/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/c2ef226f.webp?s=78e48c5124af1cd868a2aec6d95304576635291f",
+       "height": 800,
+       "high_resolution": {
+        "id": "05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M",
+        "orientation": null
+       },
+       "id": 1,
+       "image_no": 1,
+       "is_main": true,
+       "thumbnails": [
+        {
+         "height": 100,
+         "original_size": null,
+         "type": "thumb70x100",
+         "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/70x100/c2ef226f.webp?s=9ecb96bb9617af858418b946ea9b83595f1e050f",
+         "width": 70
+        },
+        {
+         "height": 210,
+         "original_size": null,
+         "type": "thumb150x210",
+         "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/150x210/c2ef226f.webp?s=6994d91dcbfff4857339d88a48370f542baab6d5",
+         "width": 150
+        },
+        {
+         "height": 430,
+         "original_size": null,
+         "type": "thumb310x430",
+         "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/310x430/c2ef226f.webp?s=3966ad1689e0d542b409433f67d07e51f186121a",
+         "width": 310
+        },
+        {
+         "height": 428,
+         "original_size": true,
+         "type": "thumb428x624",
+         "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/f800/c2ef226f.webp?s=01c4f2cf180f3ac3c4c765b90228abd8e3051c7b",
+         "width": 321
+        },
+        {
+         "height": 624,
+         "original_size": true,
+         "type": "thumb624x428",
+         "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/f800/c2ef226f.webp?s=01c4f2cf180f3ac3c4c765b90228abd8e3051c7b",
+         "width": 468
+        },
+        {
+         "height": 364,
+         "original_size": true,
+         "type": "thumb364x428",
+         "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/f800/c2ef226f.webp?s=01c4f2cf180f3ac3c4c765b90228abd8e3051c7b",
+         "width": 273
+        }
+       ],
+       "url": "https://images1.vinted.net/t/05_00c1f_5CZSAkKrXqt1Lrq6gFwRiw2M/f800/c2ef226f.webp?s=01c4f2cf180f3ac3c4c765b90228abd8e3051c7b",
+       "width": 600
+      }
+     ],
+     "price": {
+      "amount": "8.00",
+      "currency_code": "USD"
+     },
+     "promoted": true,
+     "search_tracking_params": {
+      "score": 0.9999960064888
+     },
+     "service_fee": {
+      "amount": "1.10",
+      "currency_code": "USD"
+     },
+     "show_1st_time_seller_discount": false,
+     "title": "Nike Kids Windbreaker Jacket",
+     "total_item_price": {
+      "amount": "9.10",
+      "currency_code": "USD"
+     },
+     "url": "/items/10355609852-nike-kids-windbreaker-jacket",
+     "user": {
+      "business": false,
+      "id": 3193780852,
+      "login": "sun_kissedfinds"
+     },
+     "view_count": 0
+    }
+   ],
+   "pagination": {
+    "current_page": 1,
+    "per_page": 5,
+    "time": 1791845382,
+    "total_entries": 960,
+    "total_pages": 192
+   },
+   "search_tracking_params": {
+    "global_search_session_id": "a18acbe0-b235-4718-ba4d-99c7e3a328b9",
+    "search_correlation_id": "4ccd3e03-3d7b-4643-b10d-f43cf2ffd4d9",
+    "search_session_id": "bd13fd05-c9b3-42ef-a48b-8eeb40eb303c"
+   }
+  },
+  "expected": [
+   {
+    "itemId": "10355798758",
+    "title": "Nike sweats",
+    "url": "https://www.vinted.fr/items/10355798758-nike-sweats",
+    "price": 9.0,
+    "currency": "USD",
+    "landedPrice": 10.15,
+    "condition": "Neuf sans étiquette",
+    "brand": "Nike",
+    "size": "5 ans / 110 cm",
+    "favourites": 0
+   },
+   {
+    "itemId": "10355859358",
+    "title": "Nike Crewneck",
+    "url": "https://www.vinted.fr/items/10355859358-nike-crewneck",
+    "price": 7.0,
+    "currency": "USD",
+    "landedPrice": 8.05,
+    "condition": "Bon état",
+    "brand": "Nike",
+    "size": "S / 36 / 8",
+    "favourites": 2
+   },
+   {
+    "itemId": "10355845924",
+    "title": "Nike sneakers Boys size 4",
+    "url": "https://www.vinted.fr/items/10355845924-nike-sneakers-boys-size-4",
+    "price": 20.0,
+    "currency": "USD",
+    "landedPrice": 21.7,
+    "condition": "Neuf sans étiquette",
+    "brand": "Nike",
+    "size": "35",
+    "favourites": 0
+   },
+   {
+    "itemId": "10355785657",
+    "title": "2T Nike Jacket",
+    "url": "https://www.vinted.fr/items/10355785657-2t-nike-jacket",
+    "price": 6.0,
+    "currency": "USD",
+    "landedPrice": 7.0,
+    "condition": "Très bon état",
+    "brand": "Nike",
+    "size": "18-24 mois / 86 cm",
+    "favourites": 17
+   },
+   {
+    "itemId": "10355609852",
+    "title": "Nike Kids Windbreaker Jacket",
+    "url": "https://www.vinted.fr/items/10355609852-nike-kids-windbreaker-jacket",
+    "price": 8.0,
+    "currency": "USD",
+    "landedPrice": 9.1,
+    "condition": "Bon état",
+    "brand": "Nike",
+    "size": "5 ans / 110 cm",
+    "favourites": 0
+   }
+  ]
+ },
+ "leboncoin": {
+  "source": "tests/fixtures/leboncoin_search.json",
+  "payload": {
+   "_provenance": "Ad objects captured from a real leboncoin.fr search response (the JSON the Next.js search page embeds, same ad schema as /finder/search). Trimmed to 8 ads and the unused 'similar' blobs removed; every remaining field is verbatim. Source: scrapfly-scrapers leboncoin-scraper captured results (2025-09).",
+   "ads": [
+    {
+     "list_id": 3055076563,
+     "first_publication_date": "2025-09-10 15:55:18",
+     "index_date": "2025-09-10 15:55:18",
+     "status": "active",
+     "category_id": "45",
+     "category_name": "Arts de la table",
+     "subject": "Boîte coffe",
+     "body": "",
+     "brand": "leboncoin",
+     "ad_type": "offer",
+     "url": "https://www.leboncoin.fr/ad/arts_de_la_table/3055076563",
+     "price": [
+      4
+     ],
+     "price_cents": 400,
+     "images": {
+      "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-thumb",
+      "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-small",
+      "nb_images": 2,
+      "urls": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e7/1e/db/e71edb0db80dfa9cc8b942ff633639120317baae.jpg?rule=ad-image"
+      ],
+      "urls_thumb": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e7/1e/db/e71edb0db80dfa9cc8b942ff633639120317baae.jpg?rule=ad-thumb"
+      ],
+      "urls_large": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e7/1e/db/e71edb0db80dfa9cc8b942ff633639120317baae.jpg?rule=ad-large"
+      ]
+     },
+     "attributes": [
+      {
+       "key": "rating_score",
+       "value": "1",
+       "values": [
+        "1"
+       ],
+       "value_label": "1",
+       "generic": false
+      },
+      {
+       "key": "rating_count",
+       "value": "12",
+       "values": [
+        "12"
+       ],
+       "value_label": "12",
+       "generic": false
+      },
+      {
+       "key": "profile_picture_url",
+       "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/d3743fa6-f2c0-5b08-a38b-3d60c364d5a1?rule=pp-small",
+       "values": [
+        "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/d3743fa6-f2c0-5b08-a38b-3d60c364d5a1?rule=pp-small"
+       ],
+       "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/d3743fa6-f2c0-5b08-a38b-3d60c364d5a1?rule=pp-small",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_weight",
+       "value": "2000",
+       "values": [
+        "2000"
+       ],
+       "value_label": "2000",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_size",
+       "value": "M",
+       "values": [
+        "M"
+       ],
+       "value_label": "M",
+       "generic": false
+      },
+      {
+       "key": "is_bundleable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "purchase_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "negotiation_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "country_isocode3166",
+       "value": "FR",
+       "values": [
+        "FR"
+       ],
+       "value_label": "FR",
+       "generic": false
+      },
+      {
+       "key": "condition",
+       "value": "etatneuf",
+       "values": [
+        "etatneuf"
+       ],
+       "key_label": "État",
+       "value_label": "État neuf",
+       "generic": true
+      },
+      {
+       "key": "furniture_color",
+       "value": "multicolor",
+       "values": [
+        "multicolor"
+       ],
+       "key_label": "Couleur",
+       "value_label": "Multicolore",
+       "generic": true
+      },
+      {
+       "key": "shipping_type",
+       "value": "mondial_relay",
+       "values": [
+        "mondial_relay",
+        "shop2shop",
+        "courrier_suivi",
+        "colissimo",
+        "face_to_face"
+       ],
+       "value_label": "mondial_relay",
+       "generic": false
+      },
+      {
+       "key": "shippable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "is_import",
+       "value": "false",
+       "values": [
+        "false"
+       ],
+       "value_label": "false",
+       "generic": false
+      },
+      {
+       "key": "table_art_type",
+       "value": "storage_preservation",
+       "values": [
+        "storage_preservation"
+       ],
+       "key_label": "Univers",
+       "value_label": "Rangement et conservation",
+       "generic": true
+      },
+      {
+       "key": "table_art_product",
+       "value": "boitedeconservationetboiteenmetal",
+       "values": [
+        "boitedeconservationetboiteenmetal"
+       ],
+       "key_label": "Produit",
+       "value_label": "Boite de conservation & boite en métal",
+       "generic": true
+      },
+      {
+       "key": "table_art_material",
+       "value": "ferforge",
+       "values": [
+        "ferforge"
+       ],
+       "key_label": "Matière",
+       "value_label": "Fer forgé",
+       "generic": true
+      }
+     ],
+     "location": {
+      "country_id": "FR",
+      "region_id": "16",
+      "region_name": "Midi-Pyrénées",
+      "department_id": "31",
+      "department_name": "Haute-Garonne",
+      "city_label": "Toulouse 31000 Capitole",
+      "city": "Toulouse",
+      "zipcode": "31000",
+      "district": "Capitole",
+      "lat": 43.60537,
+      "lng": 1.43991,
+      "source": "address",
+      "provider": "here",
+      "is_shape": false,
+      "feature": {
+       "type": "Feature",
+       "geometry": {
+        "type": "Point",
+        "coordinates": [
+         1.43991,
+         43.60537
+        ]
+       },
+       "properties": null
+      }
+     },
+     "owner": {
+      "store_id": "8165780",
+      "user_id": "5136d0d8-9190-49ad-9618-b4b6373f20d8",
+      "type": "private",
+      "name": "eva2019",
+      "no_salesmen": true,
+      "activity_sector": ""
+     },
+     "options": {
+      "has_option": false,
+      "booster": false,
+      "photosup": false,
+      "urgent": false,
+      "gallery": false,
+      "sub_toplist": false,
+      "continuous_top_ads": false,
+      "highlight": false
+     },
+     "has_phone": false,
+     "counters": {}
+    },
+    {
+     "list_id": 3056953695,
+     "first_publication_date": "2025-09-13 18:37:36",
+     "index_date": "2025-09-13 18:37:36",
+     "status": "active",
+     "category_id": "39",
+     "category_name": "Décoration",
+     "subject": "Cafetière baby faemina cema coffe",
+     "body": "",
+     "brand": "leboncoin",
+     "ad_type": "offer",
+     "url": "https://www.leboncoin.fr/ad/decoration/3056953695",
+     "price": [
+      200
+     ],
+     "price_cents": 20000,
+     "images": {
+      "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-thumb",
+      "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-small",
+      "nb_images": 10,
+      "urls": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/9f/7e/49/9f7e49501a1d1377f7727396b4b0baba881e5202.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/af/6e/8f/af6e8fc8c09d46313746a830c0c0f7f8f22cf1b1.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1b/7e/af/1b7eaf17fb6fc5fc72239503ad297c8c5aba9b38.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/4d/2d/1d4d2d95273a3ba6ba5c2ec373c37ec58bd90d64.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/11/94/6a/11946ab009f24b5e02613e6b9be6b426ca11f62c.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/76/b4/85/76b485ab3d223462d0e3460133c6dce21807feb8.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d4/c5/11/d4c511dc0cb87ed75155c648a2ccd98be112fd13.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/96/99/9d/96999df91d4209d39b51ffdfab921ee177b4a49b.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/a3/c7/d1/a3c7d1ae7b0d7083e6d2ac4461fc229a8b4fe7db.jpg?rule=ad-image"
+      ],
+      "urls_thumb": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/9f/7e/49/9f7e49501a1d1377f7727396b4b0baba881e5202.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/af/6e/8f/af6e8fc8c09d46313746a830c0c0f7f8f22cf1b1.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1b/7e/af/1b7eaf17fb6fc5fc72239503ad297c8c5aba9b38.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/4d/2d/1d4d2d95273a3ba6ba5c2ec373c37ec58bd90d64.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/11/94/6a/11946ab009f24b5e02613e6b9be6b426ca11f62c.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/76/b4/85/76b485ab3d223462d0e3460133c6dce21807feb8.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d4/c5/11/d4c511dc0cb87ed75155c648a2ccd98be112fd13.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/96/99/9d/96999df91d4209d39b51ffdfab921ee177b4a49b.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/a3/c7/d1/a3c7d1ae7b0d7083e6d2ac4461fc229a8b4fe7db.jpg?rule=ad-thumb"
+      ],
+      "urls_large": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/9f/7e/49/9f7e49501a1d1377f7727396b4b0baba881e5202.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/af/6e/8f/af6e8fc8c09d46313746a830c0c0f7f8f22cf1b1.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1b/7e/af/1b7eaf17fb6fc5fc72239503ad297c8c5aba9b38.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/4d/2d/1d4d2d95273a3ba6ba5c2ec373c37ec58bd90d64.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/11/94/6a/11946ab009f24b5e02613e6b9be6b426ca11f62c.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/76/b4/85/76b485ab3d223462d0e3460133c6dce21807feb8.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d4/c5/11/d4c511dc0cb87ed75155c648a2ccd98be112fd13.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/96/99/9d/96999df91d4209d39b51ffdfab921ee177b4a49b.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/a3/c7/d1/a3c7d1ae7b0d7083e6d2ac4461fc229a8b4fe7db.jpg?rule=ad-large"
+      ]
+     },
+     "attributes": [
+      {
+       "key": "rating_score",
+       "value": "1",
+       "values": [
+        "1"
+       ],
+       "value_label": "1",
+       "generic": false
+      },
+      {
+       "key": "rating_count",
+       "value": "6",
+       "values": [
+        "6"
+       ],
+       "value_label": "6",
+       "generic": false
+      },
+      {
+       "key": "profile_picture_url",
+       "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/0691167d-0243-512f-be3b-368d14ae3421?rule=pp-small",
+       "values": [
+        "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/0691167d-0243-512f-be3b-368d14ae3421?rule=pp-small"
+       ],
+       "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/0691167d-0243-512f-be3b-368d14ae3421?rule=pp-small",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_weight",
+       "value": "2071",
+       "values": [
+        "2071"
+       ],
+       "value_label": "2071",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_size",
+       "value": "M",
+       "values": [
+        "M"
+       ],
+       "value_label": "M",
+       "generic": false
+      },
+      {
+       "key": "is_bundleable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "purchase_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "negotiation_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "country_isocode3166",
+       "value": "FR",
+       "values": [
+        "FR"
+       ],
+       "value_label": "FR",
+       "generic": false
+      },
+      {
+       "key": "decoration_type",
+       "value": "bibelot",
+       "values": [
+        "bibelot"
+       ],
+       "key_label": "Type",
+       "value_label": "Bibelot",
+       "generic": true
+      },
+      {
+       "key": "shipping_type",
+       "value": "mondial_relay",
+       "values": [
+        "mondial_relay",
+        "face_to_face"
+       ],
+       "value_label": "mondial_relay",
+       "generic": false
+      },
+      {
+       "key": "shippable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "is_import",
+       "value": "false",
+       "values": [
+        "false"
+       ],
+       "value_label": "false",
+       "generic": false
+      },
+      {
+       "key": "payment_methods",
+       "value": "installments3x",
+       "values": [
+        "installments3x",
+        "installments4x"
+       ],
+       "value_label": "installments3x",
+       "generic": false
+      }
+     ],
+     "location": {
+      "country_id": "FR",
+      "region_id": "5",
+      "region_name": "Bourgogne",
+      "department_id": "58",
+      "department_name": "Nièvre",
+      "city_label": "Saint-Léger-des-Vignes 58300",
+      "city": "Saint-Léger-des-Vignes",
+      "zipcode": "58300",
+      "lat": 46.83862,
+      "lng": 3.45406,
+      "source": "city",
+      "provider": "here",
+      "is_shape": true,
+      "feature": {
+       "type": "Feature",
+       "geometry": {
+        "type": "Point",
+        "coordinates": [
+         3.45406,
+         46.83862
+        ]
+       },
+       "properties": null
+      }
+     },
+     "owner": {
+      "store_id": "13871152",
+      "user_id": "14b10464-b8a0-4a80-a9e6-bc34cf878792",
+      "type": "private",
+      "name": "trouv'tout",
+      "no_salesmen": true,
+      "activity_sector": ""
+     },
+     "options": {
+      "has_option": false,
+      "booster": false,
+      "photosup": false,
+      "urgent": false,
+      "gallery": false,
+      "sub_toplist": false,
+      "continuous_top_ads": false,
+      "highlight": false
+     },
+     "has_phone": false,
+     "counters": {}
+    },
+    {
+     "list_id": 3059311104,
+     "first_publication_date": "2025-09-17 15:56:06",
+     "index_date": "2025-09-17 15:56:06",
+     "status": "active",
+     "category_id": "27",
+     "category_name": "Livres",
+     "subject": "Livres de recettes Jean-Pierre Coffe",
+     "body": "",
+     "brand": "leboncoin",
+     "ad_type": "offer",
+     "url": "https://www.leboncoin.fr/ad/livres/3059311104",
+     "price": [
+      12
+     ],
+     "price_cents": 1200,
+     "images": {
+      "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-thumb",
+      "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-small",
+      "nb_images": 11,
+      "urls": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/c4/67/40/c46740e3a5b88fe2ec6600ce8f0dd8a65fc61be0.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/2b/96/94/2b969448ea9a5d4824d7d2a0648491c247fd4a98.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/dd/42/91/dd4291bd25210f5f085afecac1bd4be6411e646e.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d5/a3/cc/d5a3cc21fea27a0f710f1cabe81635c6f4337a91.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/ec/8d/ca/ec8dca52fad32e8b97baa33a78930195952e481a.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/21/a1/b4/21a1b4f2bec0a191f620ec23fe29f7ffad6c791e.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/67/d0/bf/67d0bf4e496d77c7a0d29c1e81175da06fde0f0c.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e2/a8/b4/e2a8b40fb1f710d61d45481477dfa6bff845603e.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/52/b5/86/52b58698771133a1cf549d4cabadc092ddf0846a.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/4c/51/d1/4c51d18deef3a7c2455c2f07884cada723467678.jpg?rule=ad-image"
+      ],
+      "urls_thumb": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/c4/67/40/c46740e3a5b88fe2ec6600ce8f0dd8a65fc61be0.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/2b/96/94/2b969448ea9a5d4824d7d2a0648491c247fd4a98.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/dd/42/91/dd4291bd25210f5f085afecac1bd4be6411e646e.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d5/a3/cc/d5a3cc21fea27a0f710f1cabe81635c6f4337a91.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/ec/8d/ca/ec8dca52fad32e8b97baa33a78930195952e481a.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/21/a1/b4/21a1b4f2bec0a191f620ec23fe29f7ffad6c791e.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/67/d0/bf/67d0bf4e496d77c7a0d29c1e81175da06fde0f0c.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e2/a8/b4/e2a8b40fb1f710d61d45481477dfa6bff845603e.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/52/b5/86/52b58698771133a1cf549d4cabadc092ddf0846a.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/4c/51/d1/4c51d18deef3a7c2455c2f07884cada723467678.jpg?rule=ad-thumb"
+      ],
+      "urls_large": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/c4/67/40/c46740e3a5b88fe2ec6600ce8f0dd8a65fc61be0.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/2b/96/94/2b969448ea9a5d4824d7d2a0648491c247fd4a98.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/dd/42/91/dd4291bd25210f5f085afecac1bd4be6411e646e.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/d5/a3/cc/d5a3cc21fea27a0f710f1cabe81635c6f4337a91.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/ec/8d/ca/ec8dca52fad32e8b97baa33a78930195952e481a.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/21/a1/b4/21a1b4f2bec0a191f620ec23fe29f7ffad6c791e.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/67/d0/bf/67d0bf4e496d77c7a0d29c1e81175da06fde0f0c.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e2/a8/b4/e2a8b40fb1f710d61d45481477dfa6bff845603e.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/52/b5/86/52b58698771133a1cf549d4cabadc092ddf0846a.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/4c/51/d1/4c51d18deef3a7c2455c2f07884cada723467678.jpg?rule=ad-large"
+      ]
+     },
+     "attributes": [
+      {
+       "key": "rating_score",
+       "value": "1",
+       "values": [
+        "1"
+       ],
+       "value_label": "1",
+       "generic": false
+      },
+      {
+       "key": "rating_count",
+       "value": "3",
+       "values": [
+        "3"
+       ],
+       "value_label": "3",
+       "generic": false
+      },
+      {
+       "key": "profile_picture_url",
+       "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/cf2e181f-af38-5763-9267-ec9e9b165628?rule=pp-small",
+       "values": [
+        "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/cf2e181f-af38-5763-9267-ec9e9b165628?rule=pp-small"
+       ],
+       "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/cf2e181f-af38-5763-9267-ec9e9b165628?rule=pp-small",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_weight",
+       "value": "2325",
+       "values": [
+        "2325"
+       ],
+       "value_label": "2325",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_size",
+       "value": "S",
+       "values": [
+        "S"
+       ],
+       "value_label": "S",
+       "generic": false
+      },
+      {
+       "key": "is_bundleable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "purchase_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "negotiation_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "country_isocode3166",
+       "value": "FR",
+       "values": [
+        "FR"
+       ],
+       "value_label": "FR",
+       "generic": false
+      },
+      {
+       "key": "condition",
+       "value": "bonetat",
+       "values": [
+        "bonetat"
+       ],
+       "key_label": "État",
+       "value_label": "Bon état",
+       "generic": true
+      },
+      {
+       "key": "shipping_type",
+       "value": "mondial_relay",
+       "values": [
+        "mondial_relay",
+        "shop2shop",
+        "colissimo",
+        "face_to_face"
+       ],
+       "value_label": "mondial_relay",
+       "generic": false
+      },
+      {
+       "key": "shippable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "is_import",
+       "value": "false",
+       "values": [
+        "false"
+       ],
+       "value_label": "false",
+       "generic": false
+      },
+      {
+       "key": "leisure_book_genre",
+       "value": "cooking",
+       "values": [
+        "cooking"
+       ],
+       "key_label": "Genre",
+       "value_label": "Cuisine",
+       "generic": true
+      }
+     ],
+     "location": {
+      "country_id": "FR",
+      "region_id": "12",
+      "region_name": "Ile-de-France",
+      "department_id": "77",
+      "department_name": "Seine-et-Marne",
+      "city_label": "Villeparisis 77270",
+      "city": "Villeparisis",
+      "zipcode": "77270",
+      "lat": 48.94163,
+      "lng": 2.60342,
+      "source": "address",
+      "provider": "here",
+      "is_shape": false,
+      "feature": {
+       "type": "Feature",
+       "geometry": {
+        "type": "Point",
+        "coordinates": [
+         2.60342,
+         48.94163
+        ]
+       },
+       "properties": null
+      }
+     },
+     "owner": {
+      "store_id": "53796313",
+      "user_id": "5af59bf7-57db-42ed-9b04-a9a07f4f25b5",
+      "type": "private",
+      "name": "CHANDINI",
+      "no_salesmen": true,
+      "activity_sector": ""
+     },
+     "options": {
+      "has_option": false,
+      "booster": false,
+      "photosup": false,
+      "urgent": false,
+      "gallery": false,
+      "sub_toplist": false,
+      "continuous_top_ads": false,
+      "highlight": false
+     },
+     "has_phone": false,
+     "counters": {}
+    },
+    {
+     "list_id": 3056184539,
+     "first_publication_date": "2025-09-12 15:26:00",
+     "index_date": "2025-09-12 15:26:00",
+     "status": "active",
+     "category_id": "45",
+     "category_name": "Arts de la table",
+     "subject": "Lot de 3 tasses / sous tasses coffé al volo 2002",
+     "body": "",
+     "brand": "leboncoin",
+     "ad_type": "offer",
+     "url": "https://www.leboncoin.fr/ad/arts_de_la_table/3056184539",
+     "price": [
+      60
+     ],
+     "price_cents": 6000,
+     "images": {
+      "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-thumb",
+      "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-small",
+      "nb_images": 3,
+      "urls": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/43/56/b7/4356b708d2275e8327ae430eb0cf6f81588c79da.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/0a/51/a6/0a51a69c6579981b08933a16147c178bcd2d6a09.jpg?rule=ad-image"
+      ],
+      "urls_thumb": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/43/56/b7/4356b708d2275e8327ae430eb0cf6f81588c79da.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/0a/51/a6/0a51a69c6579981b08933a16147c178bcd2d6a09.jpg?rule=ad-thumb"
+      ],
+      "urls_large": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/43/56/b7/4356b708d2275e8327ae430eb0cf6f81588c79da.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/0a/51/a6/0a51a69c6579981b08933a16147c178bcd2d6a09.jpg?rule=ad-large"
+      ]
+     },
+     "attributes": [
+      {
+       "key": "rating_score",
+       "value": "0.98",
+       "values": [
+        "0.98"
+       ],
+       "value_label": "0.98",
+       "generic": false
+      },
+      {
+       "key": "rating_count",
+       "value": "385",
+       "values": [
+        "385"
+       ],
+       "value_label": "385",
+       "generic": false
+      },
+      {
+       "key": "profile_picture_url",
+       "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/70076f1c-1ae8-5bed-9b04-fcf927f48c1b?rule=pp-small",
+       "values": [
+        "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/70076f1c-1ae8-5bed-9b04-fcf927f48c1b?rule=pp-small"
+       ],
+       "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/70076f1c-1ae8-5bed-9b04-fcf927f48c1b?rule=pp-small",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_weight",
+       "value": "1000",
+       "values": [
+        "1000"
+       ],
+       "value_label": "1000",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_size",
+       "value": "M",
+       "values": [
+        "M"
+       ],
+       "value_label": "M",
+       "generic": false
+      },
+      {
+       "key": "is_bundleable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "purchase_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "negotiation_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "country_isocode3166",
+       "value": "FR",
+       "values": [
+        "FR"
+       ],
+       "value_label": "FR",
+       "generic": false
+      },
+      {
+       "key": "shipping_type",
+       "value": "mondial_relay",
+       "values": [
+        "mondial_relay",
+        "shop2shop",
+        "courrier_suivi",
+        "colissimo",
+        "face_to_face"
+       ],
+       "value_label": "mondial_relay",
+       "generic": false
+      },
+      {
+       "key": "shippable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "is_import",
+       "value": "false",
+       "values": [
+        "false"
+       ],
+       "value_label": "false",
+       "generic": false
+      }
+     ],
+     "location": {
+      "country_id": "FR",
+      "region_id": "21",
+      "region_name": "Provence-Alpes-Côte d'Azur",
+      "department_id": "6",
+      "department_name": "Alpes-Maritimes",
+      "city_label": "Mandelieu-la-Napoule 06210 La Napoule",
+      "city": "Mandelieu-la-Napoule",
+      "zipcode": "06210",
+      "district": "La Napoule",
+      "lat": 43.52246,
+      "lng": 6.94051,
+      "source": "city",
+      "provider": "here",
+      "is_shape": true,
+      "feature": {
+       "type": "Feature",
+       "geometry": {
+        "type": "Point",
+        "coordinates": [
+         6.94051,
+         43.52246
+        ]
+       },
+       "properties": null
+      }
+     },
+     "owner": {
+      "store_id": "11679692",
+      "user_id": "57c04de8-46ca-4aa1-ab55-466f8be30ad6",
+      "type": "private",
+      "name": "blanc",
+      "no_salesmen": true,
+      "activity_sector": ""
+     },
+     "options": {
+      "has_option": false,
+      "booster": false,
+      "photosup": false,
+      "urgent": false,
+      "gallery": false,
+      "sub_toplist": false,
+      "continuous_top_ads": false,
+      "highlight": false
+     },
+     "has_phone": false,
+     "counters": {}
+    },
+    {
+     "list_id": 3054893595,
+     "first_publication_date": "2025-09-10 11:27:21",
+     "index_date": "2025-09-10 11:27:21",
+     "status": "active",
+     "category_id": "27",
+     "category_name": "Livres",
+     "subject": "Recettes de dimanche prochain coffe drudker",
+     "body": "",
+     "brand": "leboncoin",
+     "ad_type": "offer",
+     "url": "https://www.leboncoin.fr/ad/livres/3054893595",
+     "price": [
+      8
+     ],
+     "price_cents": 800,
+     "images": {
+      "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-thumb",
+      "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-small",
+      "nb_images": 5,
+      "urls": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/7f/8a/ee/7f8aee64ce99f35418fc4f66053fa5a5745cdbcb.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/39/70/f2/3970f254bdec7e83c4d472c4586bbe02dabfd940.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/8f/b8/1c/8fb81c557bb1660d15bd2eceee03dcd84e4e89af.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e9/f3/17/e9f3179ccbf2369f18faee8c1b1f398f0345b80c.jpg?rule=ad-image"
+      ],
+      "urls_thumb": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/7f/8a/ee/7f8aee64ce99f35418fc4f66053fa5a5745cdbcb.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/39/70/f2/3970f254bdec7e83c4d472c4586bbe02dabfd940.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/8f/b8/1c/8fb81c557bb1660d15bd2eceee03dcd84e4e89af.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e9/f3/17/e9f3179ccbf2369f18faee8c1b1f398f0345b80c.jpg?rule=ad-thumb"
+      ],
+      "urls_large": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/7f/8a/ee/7f8aee64ce99f35418fc4f66053fa5a5745cdbcb.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/39/70/f2/3970f254bdec7e83c4d472c4586bbe02dabfd940.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/8f/b8/1c/8fb81c557bb1660d15bd2eceee03dcd84e4e89af.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/e9/f3/17/e9f3179ccbf2369f18faee8c1b1f398f0345b80c.jpg?rule=ad-large"
+      ]
+     },
+     "attributes": [
+      {
+       "key": "rating_score",
+       "value": "1",
+       "values": [
+        "1"
+       ],
+       "value_label": "1",
+       "generic": false
+      },
+      {
+       "key": "rating_count",
+       "value": "13",
+       "values": [
+        "13"
+       ],
+       "value_label": "13",
+       "generic": false
+      },
+      {
+       "key": "profile_picture_url",
+       "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/1f2835e9-3312-5782-8d4a-566403e79d4f?rule=pp-small",
+       "values": [
+        "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/1f2835e9-3312-5782-8d4a-566403e79d4f?rule=pp-small"
+       ],
+       "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/1f2835e9-3312-5782-8d4a-566403e79d4f?rule=pp-small",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_weight",
+       "value": "1093",
+       "values": [
+        "1093"
+       ],
+       "value_label": "1093",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_size",
+       "value": "S",
+       "values": [
+        "S"
+       ],
+       "value_label": "S",
+       "generic": false
+      },
+      {
+       "key": "is_bundleable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "purchase_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "negotiation_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "country_isocode3166",
+       "value": "FR",
+       "values": [
+        "FR"
+       ],
+       "value_label": "FR",
+       "generic": false
+      },
+      {
+       "key": "condition",
+       "value": "tresbonetat",
+       "values": [
+        "tresbonetat"
+       ],
+       "key_label": "État",
+       "value_label": "Très bon état",
+       "generic": true
+      },
+      {
+       "key": "shipping_type",
+       "value": "mondial_relay",
+       "values": [
+        "mondial_relay",
+        "shop2shop",
+        "courrier_suivi",
+        "colissimo",
+        "face_to_face"
+       ],
+       "value_label": "mondial_relay",
+       "generic": false
+      },
+      {
+       "key": "shippable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "is_import",
+       "value": "false",
+       "values": [
+        "false"
+       ],
+       "value_label": "false",
+       "generic": false
+      },
+      {
+       "key": "leisure_book_genre",
+       "value": "cooking",
+       "values": [
+        "cooking"
+       ],
+       "key_label": "Genre",
+       "value_label": "Cuisine",
+       "generic": true
+      }
+     ],
+     "location": {
+      "country_id": "FR",
+      "region_id": "11",
+      "region_name": "Haute-Normandie",
+      "department_id": "76",
+      "department_name": "Seine-Maritime",
+      "city_label": "Oissel 76350",
+      "city": "Oissel",
+      "zipcode": "76350",
+      "lat": 49.34101,
+      "lng": 1.09587,
+      "source": "city",
+      "provider": "here",
+      "is_shape": true,
+      "feature": {
+       "type": "Feature",
+       "geometry": {
+        "type": "Point",
+        "coordinates": [
+         1.09587,
+         49.34101
+        ]
+       },
+       "properties": null
+      }
+     },
+     "owner": {
+      "store_id": "78335319",
+      "user_id": "6cbd1102-5677-42ac-802d-148b653abe1b",
+      "type": "private",
+      "name": "Josiane",
+      "no_salesmen": true,
+      "activity_sector": ""
+     },
+     "options": {
+      "has_option": false,
+      "booster": false,
+      "photosup": false,
+      "urgent": false,
+      "gallery": false,
+      "sub_toplist": false,
+      "continuous_top_ads": false,
+      "highlight": false
+     },
+     "has_phone": false,
+     "counters": {}
+    },
+    {
+     "list_id": 3060606466,
+     "first_publication_date": "2025-09-19 22:15:42",
+     "index_date": "2025-09-19 22:15:42",
+     "status": "active",
+     "category_id": "27",
+     "category_name": "Livres",
+     "subject": "Coffe Shop secrets de Barista",
+     "body": "",
+     "brand": "leboncoin",
+     "ad_type": "offer",
+     "url": "https://www.leboncoin.fr/ad/livres/3060606466",
+     "price": [
+      4
+     ],
+     "price_cents": 400,
+     "images": {
+      "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-thumb",
+      "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-small",
+      "nb_images": 4,
+      "urls": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/82/48/2f/82482fa343a2d23d184fcb722d1a53479662e88f.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/10/3c/ca/103cca6c14166093e23619445cb0f771866d15db.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/f6/31/c2/f631c28f6eaf131b85b03507892dee2e9a1ffce3.jpg?rule=ad-image"
+      ],
+      "urls_thumb": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/82/48/2f/82482fa343a2d23d184fcb722d1a53479662e88f.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/10/3c/ca/103cca6c14166093e23619445cb0f771866d15db.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/f6/31/c2/f631c28f6eaf131b85b03507892dee2e9a1ffce3.jpg?rule=ad-thumb"
+      ],
+      "urls_large": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/82/48/2f/82482fa343a2d23d184fcb722d1a53479662e88f.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/10/3c/ca/103cca6c14166093e23619445cb0f771866d15db.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/f6/31/c2/f631c28f6eaf131b85b03507892dee2e9a1ffce3.jpg?rule=ad-large"
+      ]
+     },
+     "attributes": [
+      {
+       "key": "rating_score",
+       "value": "0.99",
+       "values": [
+        "0.99"
+       ],
+       "value_label": "0.99",
+       "generic": false
+      },
+      {
+       "key": "rating_count",
+       "value": "124",
+       "values": [
+        "124"
+       ],
+       "value_label": "124",
+       "generic": false
+      },
+      {
+       "key": "profile_picture_url",
+       "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/ce316dc3-facb-542e-b7d8-b4709cead8e4?rule=pp-small",
+       "values": [
+        "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/ce316dc3-facb-542e-b7d8-b4709cead8e4?rule=pp-small"
+       ],
+       "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/ce316dc3-facb-542e-b7d8-b4709cead8e4?rule=pp-small",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_weight",
+       "value": "1000",
+       "values": [
+        "1000"
+       ],
+       "value_label": "1000",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_size",
+       "value": "S",
+       "values": [
+        "S"
+       ],
+       "value_label": "S",
+       "generic": false
+      },
+      {
+       "key": "is_bundleable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "purchase_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "negotiation_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "country_isocode3166",
+       "value": "FR",
+       "values": [
+        "FR"
+       ],
+       "value_label": "FR",
+       "generic": false
+      },
+      {
+       "key": "condition",
+       "value": "tresbonetat",
+       "values": [
+        "tresbonetat"
+       ],
+       "key_label": "État",
+       "value_label": "Très bon état",
+       "generic": true
+      },
+      {
+       "key": "shipping_type",
+       "value": "mondial_relay",
+       "values": [
+        "mondial_relay",
+        "shop2shop",
+        "courrier_suivi",
+        "colissimo",
+        "face_to_face"
+       ],
+       "value_label": "mondial_relay",
+       "generic": false
+      },
+      {
+       "key": "shippable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "is_import",
+       "value": "false",
+       "values": [
+        "false"
+       ],
+       "value_label": "false",
+       "generic": false
+      },
+      {
+       "key": "leisure_book_genre",
+       "value": "cooking",
+       "values": [
+        "cooking"
+       ],
+       "key_label": "Genre",
+       "value_label": "Cuisine",
+       "generic": true
+      }
+     ],
+     "location": {
+      "country_id": "FR",
+      "region_id": "12",
+      "region_name": "Ile-de-France",
+      "department_id": "94",
+      "department_name": "Val-de-Marne",
+      "city_label": "Charenton-le-Pont 94220",
+      "city": "Charenton-le-Pont",
+      "zipcode": "94220",
+      "lat": 48.82163,
+      "lng": 2.4135,
+      "source": "city",
+      "provider": "here",
+      "is_shape": true,
+      "feature": {
+       "type": "Feature",
+       "geometry": {
+        "type": "Point",
+        "coordinates": [
+         2.4135,
+         48.82163
+        ]
+       },
+       "properties": null
+      }
+     },
+     "owner": {
+      "store_id": "35148875",
+      "user_id": "f77fb419-9b76-4821-98be-a833913b419e",
+      "type": "private",
+      "name": "Fara",
+      "no_salesmen": true,
+      "activity_sector": ""
+     },
+     "options": {
+      "has_option": false,
+      "booster": false,
+      "photosup": false,
+      "urgent": false,
+      "gallery": false,
+      "sub_toplist": false,
+      "continuous_top_ads": false,
+      "highlight": false
+     },
+     "has_phone": false,
+     "counters": {}
+    },
+    {
+     "list_id": 3063429316,
+     "first_publication_date": "2025-09-24 15:22:26",
+     "index_date": "2025-09-24 15:22:26",
+     "status": "active",
+     "category_id": "27",
+     "category_name": "Livres",
+     "subject": "Jean pierre COFFE",
+     "body": "",
+     "brand": "leboncoin",
+     "ad_type": "offer",
+     "url": "https://www.leboncoin.fr/ad/livres/3063429316",
+     "price": [
+      5
+     ],
+     "price_cents": 500,
+     "images": {
+      "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-thumb",
+      "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-small",
+      "nb_images": 3,
+      "urls": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/3e/bf/13/3ebf13e9e2285a44b5fd16eff9734f9495376f82.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/28/a3/87/28a387fbbb64ba310eea18e60cbd7e47450cb98a.jpg?rule=ad-image"
+      ],
+      "urls_thumb": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/3e/bf/13/3ebf13e9e2285a44b5fd16eff9734f9495376f82.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/28/a3/87/28a387fbbb64ba310eea18e60cbd7e47450cb98a.jpg?rule=ad-thumb"
+      ],
+      "urls_large": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/3e/bf/13/3ebf13e9e2285a44b5fd16eff9734f9495376f82.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/28/a3/87/28a387fbbb64ba310eea18e60cbd7e47450cb98a.jpg?rule=ad-large"
+      ]
+     },
+     "attributes": [
+      {
+       "key": "rating_score",
+       "value": "1",
+       "values": [
+        "1"
+       ],
+       "value_label": "1",
+       "generic": false
+      },
+      {
+       "key": "rating_count",
+       "value": "1",
+       "values": [
+        "1"
+       ],
+       "value_label": "1",
+       "generic": false
+      },
+      {
+       "key": "profile_picture_url",
+       "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/ac2e885c-af0a-59a8-8ed9-985b850db114?rule=pp-small",
+       "values": [
+        "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/ac2e885c-af0a-59a8-8ed9-985b850db114?rule=pp-small"
+       ],
+       "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/ac2e885c-af0a-59a8-8ed9-985b850db114?rule=pp-small",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_weight",
+       "value": "1491",
+       "values": [
+        "1491"
+       ],
+       "value_label": "1491",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_size",
+       "value": "S",
+       "values": [
+        "S"
+       ],
+       "value_label": "S",
+       "generic": false
+      },
+      {
+       "key": "is_bundleable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "purchase_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "negotiation_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "country_isocode3166",
+       "value": "FR",
+       "values": [
+        "FR"
+       ],
+       "value_label": "FR",
+       "generic": false
+      },
+      {
+       "key": "condition",
+       "value": "bonetat",
+       "values": [
+        "bonetat"
+       ],
+       "key_label": "État",
+       "value_label": "Bon état",
+       "generic": true
+      },
+      {
+       "key": "shipping_type",
+       "value": "mondial_relay",
+       "values": [
+        "mondial_relay",
+        "shop2shop",
+        "courrier_suivi",
+        "colissimo",
+        "face_to_face"
+       ],
+       "value_label": "mondial_relay",
+       "generic": false
+      },
+      {
+       "key": "shippable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "is_import",
+       "value": "false",
+       "values": [
+        "false"
+       ],
+       "value_label": "false",
+       "generic": false
+      },
+      {
+       "key": "leisure_book_genre",
+       "value": "cooking",
+       "values": [
+        "cooking"
+       ],
+       "key_label": "Genre",
+       "value_label": "Cuisine",
+       "generic": true
+      }
+     ],
+     "location": {
+      "country_id": "FR",
+      "region_id": "6",
+      "region_name": "Bretagne",
+      "department_id": "56",
+      "department_name": "Morbihan",
+      "city_label": "Saint-Nolff 56250",
+      "city": "Saint-Nolff",
+      "zipcode": "56250",
+      "lat": 47.70607,
+      "lng": -2.65354,
+      "source": "city",
+      "provider": "here",
+      "is_shape": true,
+      "feature": {
+       "type": "Feature",
+       "geometry": {
+        "type": "Point",
+        "coordinates": [
+         -2.65354,
+         47.70607
+        ]
+       },
+       "properties": null
+      }
+     },
+     "owner": {
+      "store_id": "12264219",
+      "user_id": "2b32e859-1b23-4481-a9ea-5f1e3d51fdbe",
+      "type": "private",
+      "name": "fred56",
+      "no_salesmen": true,
+      "activity_sector": ""
+     },
+     "options": {
+      "has_option": false,
+      "booster": false,
+      "photosup": false,
+      "urgent": false,
+      "gallery": false,
+      "sub_toplist": false,
+      "continuous_top_ads": false,
+      "highlight": false
+     },
+     "has_phone": false,
+     "counters": {}
+    },
+    {
+     "list_id": 3028184496,
+     "first_publication_date": "2025-07-23 23:24:00",
+     "index_date": "2025-09-17 19:25:22",
+     "status": "active",
+     "category_id": "27",
+     "category_name": "Livres",
+     "subject": "L'almanach Jean-Pierre Coffe",
+     "body": "",
+     "brand": "leboncoin",
+     "ad_type": "offer",
+     "url": "https://www.leboncoin.fr/ad/livres/3028184496",
+     "price": [
+      4
+     ],
+     "price_cents": 349,
+     "images": {
+      "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-thumb",
+      "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-small",
+      "nb_images": 2,
+      "urls": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-image",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/db/2d/1ddb2dd08c4e94eb0e640fb5a65537a0eb05b54a.jpg?rule=ad-image"
+      ],
+      "urls_thumb": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-thumb",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/db/2d/1ddb2dd08c4e94eb0e640fb5a65537a0eb05b54a.jpg?rule=ad-thumb"
+      ],
+      "urls_large": [
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-large",
+       "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/db/2d/1ddb2dd08c4e94eb0e640fb5a65537a0eb05b54a.jpg?rule=ad-large"
+      ]
+     },
+     "attributes": [
+      {
+       "key": "activity_sector",
+       "value": "5",
+       "values": [
+        "5"
+       ],
+       "value_label": "5",
+       "generic": false
+      },
+      {
+       "key": "rating_score",
+       "value": "0.98",
+       "values": [
+        "0.98"
+       ],
+       "value_label": "0.98",
+       "generic": false
+      },
+      {
+       "key": "rating_count",
+       "value": "27279",
+       "values": [
+        "27279"
+       ],
+       "value_label": "27279",
+       "generic": false
+      },
+      {
+       "key": "estimated_parcel_weight",
+       "value": "300",
+       "values": [
+        "300"
+       ],
+       "value_label": "300",
+       "generic": false
+      },
+      {
+       "key": "stock_quantity",
+       "value": "1",
+       "values": [
+        "1"
+       ],
+       "value_label": "1",
+       "generic": false
+      },
+      {
+       "key": "purchase_cta_visible",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "country_isocode3166",
+       "value": "FR",
+       "values": [
+        "FR"
+       ],
+       "value_label": "FR",
+       "generic": false
+      },
+      {
+       "key": "ean",
+       "value": "EAN9782081368163",
+       "values": [
+        "EAN9782081368163"
+       ],
+       "key_label": "Code-barres EAN",
+       "value_label": "EAN9782081368163",
+       "generic": false
+      },
+      {
+       "key": "condition",
+       "value": "bonetat",
+       "values": [
+        "bonetat"
+       ],
+       "key_label": "État",
+       "value_label": "Bon état",
+       "generic": true
+      },
+      {
+       "key": "new_item_price",
+       "value": "349",
+       "values": [
+        "349"
+       ],
+       "value_label": "349",
+       "generic": false
+      },
+      {
+       "key": "shipping_type",
+       "value": "distance",
+       "values": [
+        "distance"
+       ],
+       "value_label": "distance",
+       "generic": false
+      },
+      {
+       "key": "shipping_cost",
+       "value": "350",
+       "values": [
+        "350"
+       ],
+       "value_label": "350",
+       "generic": false
+      },
+      {
+       "key": "shippable",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      },
+      {
+       "key": "custom_ref",
+       "value": "G298957",
+       "values": [
+        "G298957"
+       ],
+       "key_label": "Référence",
+       "value_label": "G298957",
+       "generic": false
+      },
+      {
+       "key": "is_import",
+       "value": "true",
+       "values": [
+        "true"
+       ],
+       "value_label": "true",
+       "generic": false
+      }
+     ],
+     "location": {
+      "country_id": "FR",
+      "region_id": "12",
+      "region_name": "Ile-de-France",
+      "department_id": "91",
+      "department_name": "Essonne",
+      "city_label": "Morangis 91420",
+      "city": "Morangis",
+      "zipcode": "91420",
+      "lat": 48.70484,
+      "lng": 2.33299,
+      "source": "city",
+      "provider": "here",
+      "is_shape": true,
+      "feature": {
+       "type": "Feature",
+       "geometry": {
+        "type": "Point",
+        "coordinates": [
+         2.33299,
+         48.70484
+        ]
+       },
+       "properties": null
+      }
+     },
+     "owner": {
+      "store_id": "77397972",
+      "user_id": "dcf1c124-7a14-4d45-95dd-aff1327a6a78",
+      "type": "pro",
+      "name": "AMMAREAL",
+      "siren": "797906906",
+      "no_salesmen": false,
+      "activity_sector": "5"
+     },
+     "options": {
+      "has_option": false,
+      "booster": false,
+      "photosup": false,
+      "urgent": false,
+      "gallery": false,
+      "sub_toplist": false,
+      "continuous_top_ads": false,
+      "highlight": false
+     },
+     "has_phone": false,
+     "counters": {}
+    }
+   ],
+   "total": 70,
+   "max_pages": 3
+  },
+  "expected": [
+   {
+    "itemId": "3055076563",
+    "title": "Boîte coffe",
+    "url": "https://www.leboncoin.fr/ad/arts_de_la_table/3055076563",
+    "price": 4.0,
+    "currency": "EUR",
+    "condition": "État neuf",
+    "brand": null,
+    "size": null,
+    "createdAt": "2025-09-10T13:55:18+00:00",
+    "sellerType": "private"
+   },
+   {
+    "itemId": "3056953695",
+    "title": "Cafetière baby faemina cema coffe",
+    "url": "https://www.leboncoin.fr/ad/decoration/3056953695",
+    "price": 200.0,
+    "currency": "EUR",
+    "condition": null,
+    "brand": null,
+    "size": null,
+    "createdAt": "2025-09-13T16:37:36+00:00",
+    "sellerType": "private"
+   },
+   {
+    "itemId": "3059311104",
+    "title": "Livres de recettes Jean-Pierre Coffe",
+    "url": "https://www.leboncoin.fr/ad/livres/3059311104",
+    "price": 12.0,
+    "currency": "EUR",
+    "condition": "Bon état",
+    "brand": null,
+    "size": null,
+    "createdAt": "2025-09-17T13:56:06+00:00",
+    "sellerType": "private"
+   },
+   {
+    "itemId": "3056184539",
+    "title": "Lot de 3 tasses / sous tasses coffé al volo 2002",
+    "url": "https://www.leboncoin.fr/ad/arts_de_la_table/3056184539",
+    "price": 60.0,
+    "currency": "EUR",
+    "condition": null,
+    "brand": null,
+    "size": null,
+    "createdAt": "2025-09-12T13:26:00+00:00",
+    "sellerType": "private"
+   },
+   {
+    "itemId": "3054893595",
+    "title": "Recettes de dimanche prochain coffe drudker",
+    "url": "https://www.leboncoin.fr/ad/livres/3054893595",
+    "price": 8.0,
+    "currency": "EUR",
+    "condition": "Très bon état",
+    "brand": null,
+    "size": null,
+    "createdAt": "2025-09-10T09:27:21+00:00",
+    "sellerType": "private"
+   },
+   {
+    "itemId": "3060606466",
+    "title": "Coffe Shop secrets de Barista",
+    "url": "https://www.leboncoin.fr/ad/livres/3060606466",
+    "price": 4.0,
+    "currency": "EUR",
+    "condition": "Très bon état",
+    "brand": null,
+    "size": null,
+    "createdAt": "2025-09-19T20:15:42+00:00",
+    "sellerType": "private"
+   },
+   {
+    "itemId": "3063429316",
+    "title": "Jean pierre COFFE",
+    "url": "https://www.leboncoin.fr/ad/livres/3063429316",
+    "price": 5.0,
+    "currency": "EUR",
+    "condition": "Bon état",
+    "brand": null,
+    "size": null,
+    "createdAt": "2025-09-24T13:22:26+00:00",
+    "sellerType": "private"
+   },
+   {
+    "itemId": "3028184496",
+    "title": "L'almanach Jean-Pierre Coffe",
+    "url": "https://www.leboncoin.fr/ad/livres/3028184496",
+    "price": 3.49,
+    "currency": "EUR",
+    "condition": "Bon état",
+    "brand": null,
+    "size": null,
+    "createdAt": "2025-09-17T17:25:22+00:00",
+    "sellerType": "pro"
+   }
+  ]
+ }
+}

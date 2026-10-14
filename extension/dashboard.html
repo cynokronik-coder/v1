@@ -27,9 +27,17 @@
       </div>
     </header>
 
+    <nav class="pagenav" id="pagenav">
+      <button class="pagenav-tab is-active" data-page="deals">Deals<span class="pagenav-badge" id="badge-deals"></span></button>
+      <button class="pagenav-tab" data-page="opportunities">Opportunities<span class="pagenav-badge" id="badge-opportunities"></span></button>
+      <button class="pagenav-tab" data-page="history">History</button>
+      <button class="pagenav-tab" data-page="sources">Sources<span class="pagenav-badge" id="badge-sources"></span></button>
+      <button class="pagenav-tab" data-page="settings">Settings</button>
+    </nav>
+
     <div class="banner" id="banner" hidden></div>
 
-    <main>
+    <main id="page-deals">
       <section class="deals-panel">
         <div class="filters">
           <div class="tabs" id="tabs">
@@ -37,6 +45,7 @@
             <button class="tab" data-status="bought">Bought</button>
             <button class="tab" data-status="hidden">Hidden</button>
             <button class="tab" data-status="all">All</button>
+            <button class="tab tab-star" data-favourites="true">★ Starred</button>
           </div>
           <label class="field">
             <span>Watch</span>
@@ -69,6 +78,7 @@
             <input id="filter-text" type="search" placeholder="title, brand, size..." />
           </label>
           <button id="clear-deals" class="btn" title="Delete the stored deals and empty the toolbar badge">Clear deals</button>
+          <button id="clear-keep-starred" class="btn" title="Delete the stored deals but keep the ones you starred">Clear, keep starred</button>
         </div>
 
         <div id="deals" class="grid"></div>
@@ -106,6 +116,217 @@
       </aside>
     </main>
 
+    <main id="page-opportunities" hidden>
+      <section class="opp-panel">
+        <div class="opp-head">
+          <div>
+            <h2>Market opportunities</h2>
+            <p class="hint" id="opportunity-last">never run</p>
+          </div>
+          <div class="row">
+            <button id="scan-opportunities" class="btn btn-primary">Run analysis</button>
+            <button id="opportunities-help" class="btn">How this is measured</button>
+          </div>
+        </div>
+        <div class="banner banner-inline" id="opportunity-notes" hidden></div>
+
+        <div class="filters">
+          <label class="field">
+            <span>Verdict</span>
+            <select id="filter-verdict">
+              <option value="">every verdict</option>
+              <option value="buy">worth buying</option>
+              <option value="watch">worth watching</option>
+              <option value="skip">skip</option>
+              <option value="insufficient data">not enough data</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Category</span>
+            <select id="filter-category"><option value="">all categories</option></select>
+          </label>
+          <label class="field">
+            <span>Sort</span>
+            <select id="filter-opportunity-sort">
+              <option value="score">best score</option>
+              <option value="margin">best margin %</option>
+              <option value="profit">biggest cash profit</option>
+              <option value="demand">most in demand</option>
+              <option value="name">name</option>
+            </select>
+          </label>
+          <label class="field grow">
+            <span>Search</span>
+            <input id="filter-opportunity-text" type="search" placeholder="product, category, reason..." />
+          </label>
+          <label class="field">
+            <span>Show</span>
+            <select id="filter-opportunity-actionable">
+              <option value="">all measured</option>
+              <option value="1">actionable only</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="opportunities" class="grid"></div>
+        <p class="empty" id="opportunities-empty" hidden></p>
+
+        <section class="panel explanation" id="opportunity-explanation" hidden>
+          <h2>What this page actually measures</h2>
+          <p>
+            Each product is sampled on the <strong>buy side</strong> (Vinted and leboncoin: private sellers,
+            where things are cheap) and on the <strong>resale side</strong> (eBay's official Browse API, Back Market,
+            or a price you typed in). The acquisition price is the 15th percentile of the buy-side listings — what
+            you could realistically pay, not the once-in-a-year cheapest — and the resale price is the median of
+            the resale sample.
+          </p>
+          <p>
+            <strong>Fees are subtracted</strong> (marketplace commission, payment processing, shipping you pay) before
+            the margin is called a margin. That is why a 30% price gap is often only a 12% net margin.
+          </p>
+          <p>
+            The <strong>trend</strong> column is public-interest data: Wikimedia pageviews for the product's article
+            (free, key-less, no scraping of social platforms), optionally GDELT news attention, plus the keywords you
+            paste into Settings yourself. There is no API that returns "what is trending on TikTok", and this extension
+            does not pretend otherwise — marketplace demand (favourites, listing volume, how fresh the listings are) is
+            the signal with actual money behind it, and it carries a third of the score.
+          </p>
+          <p>
+            <strong>Confidence</strong> is about sample size, not enthusiasm. A gorgeous margin computed from four
+            listings is labelled <em>not enough data</em>, and stays that way.
+          </p>
+        </section>
+      </section>
+
+      <aside class="side">
+        <section class="panel">
+          <h2>Product catalogue</h2>
+          <p class="hint">
+            What one run samples. Edit the keyword and the price band to match what you actually see; add your own
+            products at the bottom. Manual resale price wins over the resale sample when you set it.
+          </p>
+          <div id="catalog" class="catalog"></div>
+          <div class="row">
+            <button id="add-catalog" class="btn">Add a product</button>
+            <button id="save-catalog" class="btn btn-primary">Save catalogue</button>
+          </div>
+          <p class="error" id="catalog-error" hidden></p>
+        </section>
+
+        <section class="panel">
+          <h2>Opportunity runs</h2>
+          <ul id="opportunity-runs" class="log"></ul>
+        </section>
+      </aside>
+    </main>
+
+    <main id="page-history" hidden>
+      <section class="opp-panel">
+        <div class="opp-head">
+          <div>
+            <h2>History</h2>
+            <p class="hint" id="history-hint">Every scan pass and every opportunities run, newest first.</p>
+          </div>
+        </div>
+        <div class="filters">
+          <label class="field">
+            <span>Kind</span>
+            <select id="filter-history-kind">
+              <option value="">everything</option>
+              <option value="watch">watch scans</option>
+              <option value="opportunities">opportunities runs</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Watch</span>
+            <select id="filter-history-watch"><option value="">all</option></select>
+          </label>
+          <label class="field grow">
+            <span>Search</span>
+            <input id="filter-history-text" type="search" placeholder="watch, message, error..." />
+          </label>
+        </div>
+        <table class="history">
+          <thead>
+            <tr><th>when</th><th>what</th><th>watch</th><th>result</th><th></th></tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
+        <p class="empty" id="history-empty" hidden></p>
+
+        <section class="panel">
+          <h2>Market price per watch</h2>
+          <p class="hint">
+            The median the baseline settled on, scan after scan. A step change here usually means the market moved —
+            or that your filters started keeping a different set of listings.
+          </p>
+          <div id="sparklines" class="sparklines"></div>
+        </section>
+      </section>
+    </main>
+
+    <main id="page-sources" hidden>
+      <section class="opp-panel">
+        <div class="opp-head">
+          <div>
+            <h2>Where the data comes from</h2>
+            <p class="hint" id="sources-hint">Every marketplace this extension knows about, how it is reached, and what its terms say.</p>
+          </div>
+          <div class="row">
+            <button id="check-all-sources" class="btn">Test every enabled source</button>
+          </div>
+        </div>
+
+        <section class="panel explanation">
+          <h2>Read this before you switch anything on</h2>
+          <p>
+            Two of these are <strong>documented APIs</strong>: eBay (free developer keyset, no seller account needed) and
+            anything you reach through a data provider you bring a key for. Everything else is a
+            <strong>page</strong>: the extension reads it, in a tab you already have open, at a slow pace, with no
+            user-agent spoofing, no proxy rotation and no CAPTCHA solving.
+          </p>
+          <p>
+            Sites whose search is client-rendered default to <strong>reads your tab</strong>: you run the search
+            yourself, the extension measures the page you are looking at. That is the mode that builds no URL and
+            makes no request of its own, and it is the one to prefer when a site is hostile to automation.
+          </p>
+          <p>
+            A terms note is not legal advice and it is not a promise. It is what each site's own developer material
+            and terms actually say, so you can make the call yourself. Facebook Marketplace is off by default because
+            Meta's terms explicitly forbid automated collection without permission.
+          </p>
+        </section>
+
+        <div id="sources-list" class="sources"></div>
+      </section>
+
+      <aside class="side">
+        <section class="panel">
+          <h2>Data providers</h2>
+          <p class="hint">
+            Bring your own key and a third-party service does the fetching, including for the sites that have no API
+            of their own. Your keys are stored locally and sent to nobody but that provider.
+          </p>
+          <div id="providers-list" class="providers"></div>
+          <button id="go-to-settings" class="btn">Add a provider key in Settings</button>
+        </section>
+      </aside>
+    </main>
+
+    <main id="page-settings" hidden>
+      <section class="opp-panel">
+        <div class="opp-head">
+          <div>
+            <h2>Settings</h2>
+            <p class="hint">Everything here is stored locally, in this browser profile.</p>
+          </div>
+          <button id="save-settings" class="btn btn-primary">Save settings</button>
+        </div>
+        <p class="error" id="settings-error" hidden></p>
+        <div class="settings-grid" id="settings-form"></div>
+      </section>
+    </main>
+
     <template id="deal-template">
       <article class="card">
         <a class="shot" target="_blank" rel="noreferrer noopener">
@@ -118,6 +339,7 @@
             <span class="chip chip-watch"></span>
             <span class="chip chip-market"></span>
             <span class="chip chip-status" hidden></span>
+            <span class="chip chip-star" hidden>★</span>
           </div>
           <h3 class="title"></h3>
           <p class="headline"></p>
@@ -125,6 +347,7 @@
           <p class="reasons"></p>
           <div class="card-actions">
             <a class="btn btn-primary open" target="_blank" rel="noreferrer noopener">Open listing</a>
+            <button class="btn act-star" title="Star this deal so it is easy to find again">☆ Star</button>
             <button class="btn act-bought">Bought</button>
             <button class="btn act-hidden">Hide</button>
             <button class="btn act-new" hidden>Restore</button>
@@ -132,6 +355,119 @@
           </div>
         </div>
       </article>
+    </template>
+
+    <template id="opportunity-template">
+      <article class="opp">
+        <div class="opp-chips">
+          <span class="chip chip-verdict"></span>
+          <span class="chip chip-category"></span>
+          <span class="chip chip-confidence"></span>
+        </div>
+        <h3 class="opp-name"></h3>
+        <p class="opp-headline"></p>
+        <p class="opp-meta"></p>
+        <p class="opp-confidence"></p>
+        <ul class="opp-reasons"></ul>
+        <div class="card-actions">
+          <a class="btn btn-primary opp-buy" target="_blank" rel="noreferrer noopener">Open a buy listing</a>
+          <a class="btn opp-resale" target="_blank" rel="noreferrer noopener" hidden>Resale reference</a>
+          <button class="btn opp-watch" title="Watch this product on the buy side, so you are told when one appears">Track as a watch</button>
+        </div>
+      </article>
+    </template>
+
+    <template id="history-template">
+      <tr>
+        <td class="h-when"></td>
+        <td class="h-kind"></td>
+        <td class="h-watch"></td>
+        <td class="h-summary"></td>
+        <td class="h-error"></td>
+      </tr>
+    </template>
+
+    <template id="source-template">
+      <div class="source-row">
+        <div class="source-head">
+          <label class="check"><input type="checkbox" data-field="enabled" /><span class="source-label"></span></label>
+          <span class="chip chip-kind"></span>
+          <span class="chip chip-access"></span>
+          <span class="chip chip-mode"></span>
+          <span class="source-status"></span>
+        </div>
+        <p class="source-detail"></p>
+        <div class="source-controls">
+          <label class="field">
+            <span>how to reach it</span>
+            <select data-field="mode">
+              <option value="auto">auto (recommended)</option>
+              <option value="search-url">build the search URL</option>
+              <option value="open-tab">reads your tab</option>
+            </select>
+          </label>
+          <label class="field grow">
+            <span>search URL template</span>
+            <input data-field="urlTemplate" placeholder="https://.../search?q={query}" />
+          </label>
+          <label class="field">
+            <span>Apify actor (optional)</span>
+            <input data-field="actor" placeholder="user~actor-name" />
+          </label>
+        </div>
+        <div class="source-actions">
+          <label class="check check-terms"><input type="checkbox" data-field="acknowledgeTerms" /><span>terms acknowledged</span></label>
+          <a class="btn source-open" target="_blank" rel="noreferrer noopener">Open the search page</a>
+          <button class="btn source-test">Test this source</button>
+          <span class="source-check"></span>
+        </div>
+        <details class="source-notes">
+          <summary>What this source is, and what its terms say</summary>
+          <p class="source-note"></p>
+          <p class="source-terms"></p>
+          <p class="source-advice"></p>
+        </details>
+      </div>
+    </template>
+
+    <template id="provider-template">
+      <div class="provider-row">
+        <div class="provider-head">
+          <span class="provider-label"></span>
+          <span class="provider-status"></span>
+        </div>
+        <p class="provider-what"></p>
+        <p class="provider-legal"></p>
+        <p class="provider-meta"></p>
+        <div class="row">
+          <a class="btn provider-docs" target="_blank" rel="noreferrer noopener">Docs</a>
+          <a class="btn provider-signup" target="_blank" rel="noreferrer noopener">Get a key</a>
+        </div>
+      </div>
+    </template>
+
+    <template id="catalog-template">
+      <div class="catalog-row">
+        <label class="check" title="Sample this product on the next run">
+          <input type="checkbox" data-field="enabled" />
+        </label>
+        <input data-field="name" placeholder="name" />
+        <input data-field="keyword" placeholder="search text" />
+        <input data-field="plausibleMinPrice" placeholder="min" class="narrow" />
+        <input data-field="plausibleMaxPrice" placeholder="max" class="narrow" />
+        <input data-field="buyMarket" placeholder="buy markets: vinted, leboncoin" />
+        <select data-field="resaleSource">
+          <option value="ebay">ebay</option>
+          <option value="backmarket">backmarket</option>
+          <option value="vinted">vinted</option>
+          <option value="leboncoin">leboncoin</option>
+          <option value="manual">manual</option>
+        </select>
+        <input data-field="resaleSources" placeholder="also price against: ebay, backmarket" />
+        <input data-field="manualResalePrice" placeholder="resale price" class="narrow" />
+        <input data-field="wikipedia" placeholder="wikipedia article" />
+        <button class="btn remove" title="Remove this product from the catalogue">✕</button>
+      </div>
     </template>
 
     <script type="module" src="src/dashboard.js"></script>

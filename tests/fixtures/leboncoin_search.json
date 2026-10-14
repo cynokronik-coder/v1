@@ -1,0 +1,1806 @@
+{
+ "_provenance": "Ad objects captured from a real leboncoin.fr search response (the JSON the Next.js search page embeds, same ad schema as /finder/search). Trimmed to 8 ads and the unused 'similar' blobs removed; every remaining field is verbatim. Source: scrapfly-scrapers leboncoin-scraper captured results (2025-09).",
+ "ads": [
+  {
+   "list_id": 3055076563,
+   "first_publication_date": "2025-09-10 15:55:18",
+   "index_date": "2025-09-10 15:55:18",
+   "status": "active",
+   "category_id": "45",
+   "category_name": "Arts de la table",
+   "subject": "Boîte coffe",
+   "body": "",
+   "brand": "leboncoin",
+   "ad_type": "offer",
+   "url": "https://www.leboncoin.fr/ad/arts_de_la_table/3055076563",
+   "price": [
+    4
+   ],
+   "price_cents": 400,
+   "images": {
+    "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-thumb",
+    "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-small",
+    "nb_images": 2,
+    "urls": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e7/1e/db/e71edb0db80dfa9cc8b942ff633639120317baae.jpg?rule=ad-image"
+    ],
+    "urls_thumb": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e7/1e/db/e71edb0db80dfa9cc8b942ff633639120317baae.jpg?rule=ad-thumb"
+    ],
+    "urls_large": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/ca/53/30/ca53305407bebfa3ee40dfb373f1a64dee3f42a7.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e7/1e/db/e71edb0db80dfa9cc8b942ff633639120317baae.jpg?rule=ad-large"
+    ]
+   },
+   "attributes": [
+    {
+     "key": "rating_score",
+     "value": "1",
+     "values": [
+      "1"
+     ],
+     "value_label": "1",
+     "generic": false
+    },
+    {
+     "key": "rating_count",
+     "value": "12",
+     "values": [
+      "12"
+     ],
+     "value_label": "12",
+     "generic": false
+    },
+    {
+     "key": "profile_picture_url",
+     "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/d3743fa6-f2c0-5b08-a38b-3d60c364d5a1?rule=pp-small",
+     "values": [
+      "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/d3743fa6-f2c0-5b08-a38b-3d60c364d5a1?rule=pp-small"
+     ],
+     "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/d3743fa6-f2c0-5b08-a38b-3d60c364d5a1?rule=pp-small",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_weight",
+     "value": "2000",
+     "values": [
+      "2000"
+     ],
+     "value_label": "2000",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_size",
+     "value": "M",
+     "values": [
+      "M"
+     ],
+     "value_label": "M",
+     "generic": false
+    },
+    {
+     "key": "is_bundleable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "purchase_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "negotiation_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "country_isocode3166",
+     "value": "FR",
+     "values": [
+      "FR"
+     ],
+     "value_label": "FR",
+     "generic": false
+    },
+    {
+     "key": "condition",
+     "value": "etatneuf",
+     "values": [
+      "etatneuf"
+     ],
+     "key_label": "État",
+     "value_label": "État neuf",
+     "generic": true
+    },
+    {
+     "key": "furniture_color",
+     "value": "multicolor",
+     "values": [
+      "multicolor"
+     ],
+     "key_label": "Couleur",
+     "value_label": "Multicolore",
+     "generic": true
+    },
+    {
+     "key": "shipping_type",
+     "value": "mondial_relay",
+     "values": [
+      "mondial_relay",
+      "shop2shop",
+      "courrier_suivi",
+      "colissimo",
+      "face_to_face"
+     ],
+     "value_label": "mondial_relay",
+     "generic": false
+    },
+    {
+     "key": "shippable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "is_import",
+     "value": "false",
+     "values": [
+      "false"
+     ],
+     "value_label": "false",
+     "generic": false
+    },
+    {
+     "key": "table_art_type",
+     "value": "storage_preservation",
+     "values": [
+      "storage_preservation"
+     ],
+     "key_label": "Univers",
+     "value_label": "Rangement et conservation",
+     "generic": true
+    },
+    {
+     "key": "table_art_product",
+     "value": "boitedeconservationetboiteenmetal",
+     "values": [
+      "boitedeconservationetboiteenmetal"
+     ],
+     "key_label": "Produit",
+     "value_label": "Boite de conservation & boite en métal",
+     "generic": true
+    },
+    {
+     "key": "table_art_material",
+     "value": "ferforge",
+     "values": [
+      "ferforge"
+     ],
+     "key_label": "Matière",
+     "value_label": "Fer forgé",
+     "generic": true
+    }
+   ],
+   "location": {
+    "country_id": "FR",
+    "region_id": "16",
+    "region_name": "Midi-Pyrénées",
+    "department_id": "31",
+    "department_name": "Haute-Garonne",
+    "city_label": "Toulouse 31000 Capitole",
+    "city": "Toulouse",
+    "zipcode": "31000",
+    "district": "Capitole",
+    "lat": 43.60537,
+    "lng": 1.43991,
+    "source": "address",
+    "provider": "here",
+    "is_shape": false,
+    "feature": {
+     "type": "Feature",
+     "geometry": {
+      "type": "Point",
+      "coordinates": [
+       1.43991,
+       43.60537
+      ]
+     },
+     "properties": null
+    }
+   },
+   "owner": {
+    "store_id": "8165780",
+    "user_id": "5136d0d8-9190-49ad-9618-b4b6373f20d8",
+    "type": "private",
+    "name": "eva2019",
+    "no_salesmen": true,
+    "activity_sector": ""
+   },
+   "options": {
+    "has_option": false,
+    "booster": false,
+    "photosup": false,
+    "urgent": false,
+    "gallery": false,
+    "sub_toplist": false,
+    "continuous_top_ads": false,
+    "highlight": false
+   },
+   "has_phone": false,
+   "counters": {}
+  },
+  {
+   "list_id": 3056953695,
+   "first_publication_date": "2025-09-13 18:37:36",
+   "index_date": "2025-09-13 18:37:36",
+   "status": "active",
+   "category_id": "39",
+   "category_name": "Décoration",
+   "subject": "Cafetière baby faemina cema coffe",
+   "body": "",
+   "brand": "leboncoin",
+   "ad_type": "offer",
+   "url": "https://www.leboncoin.fr/ad/decoration/3056953695",
+   "price": [
+    200
+   ],
+   "price_cents": 20000,
+   "images": {
+    "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-thumb",
+    "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-small",
+    "nb_images": 10,
+    "urls": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/9f/7e/49/9f7e49501a1d1377f7727396b4b0baba881e5202.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/af/6e/8f/af6e8fc8c09d46313746a830c0c0f7f8f22cf1b1.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1b/7e/af/1b7eaf17fb6fc5fc72239503ad297c8c5aba9b38.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/4d/2d/1d4d2d95273a3ba6ba5c2ec373c37ec58bd90d64.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/11/94/6a/11946ab009f24b5e02613e6b9be6b426ca11f62c.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/76/b4/85/76b485ab3d223462d0e3460133c6dce21807feb8.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d4/c5/11/d4c511dc0cb87ed75155c648a2ccd98be112fd13.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/96/99/9d/96999df91d4209d39b51ffdfab921ee177b4a49b.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/a3/c7/d1/a3c7d1ae7b0d7083e6d2ac4461fc229a8b4fe7db.jpg?rule=ad-image"
+    ],
+    "urls_thumb": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/9f/7e/49/9f7e49501a1d1377f7727396b4b0baba881e5202.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/af/6e/8f/af6e8fc8c09d46313746a830c0c0f7f8f22cf1b1.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1b/7e/af/1b7eaf17fb6fc5fc72239503ad297c8c5aba9b38.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/4d/2d/1d4d2d95273a3ba6ba5c2ec373c37ec58bd90d64.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/11/94/6a/11946ab009f24b5e02613e6b9be6b426ca11f62c.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/76/b4/85/76b485ab3d223462d0e3460133c6dce21807feb8.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d4/c5/11/d4c511dc0cb87ed75155c648a2ccd98be112fd13.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/96/99/9d/96999df91d4209d39b51ffdfab921ee177b4a49b.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/a3/c7/d1/a3c7d1ae7b0d7083e6d2ac4461fc229a8b4fe7db.jpg?rule=ad-thumb"
+    ],
+    "urls_large": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d0/6b/59/d06b5929280f8cb3ad5f0b367d5cdf5ca86f6740.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/9f/7e/49/9f7e49501a1d1377f7727396b4b0baba881e5202.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/af/6e/8f/af6e8fc8c09d46313746a830c0c0f7f8f22cf1b1.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1b/7e/af/1b7eaf17fb6fc5fc72239503ad297c8c5aba9b38.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/4d/2d/1d4d2d95273a3ba6ba5c2ec373c37ec58bd90d64.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/11/94/6a/11946ab009f24b5e02613e6b9be6b426ca11f62c.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/76/b4/85/76b485ab3d223462d0e3460133c6dce21807feb8.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d4/c5/11/d4c511dc0cb87ed75155c648a2ccd98be112fd13.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/96/99/9d/96999df91d4209d39b51ffdfab921ee177b4a49b.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/a3/c7/d1/a3c7d1ae7b0d7083e6d2ac4461fc229a8b4fe7db.jpg?rule=ad-large"
+    ]
+   },
+   "attributes": [
+    {
+     "key": "rating_score",
+     "value": "1",
+     "values": [
+      "1"
+     ],
+     "value_label": "1",
+     "generic": false
+    },
+    {
+     "key": "rating_count",
+     "value": "6",
+     "values": [
+      "6"
+     ],
+     "value_label": "6",
+     "generic": false
+    },
+    {
+     "key": "profile_picture_url",
+     "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/0691167d-0243-512f-be3b-368d14ae3421?rule=pp-small",
+     "values": [
+      "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/0691167d-0243-512f-be3b-368d14ae3421?rule=pp-small"
+     ],
+     "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/0691167d-0243-512f-be3b-368d14ae3421?rule=pp-small",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_weight",
+     "value": "2071",
+     "values": [
+      "2071"
+     ],
+     "value_label": "2071",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_size",
+     "value": "M",
+     "values": [
+      "M"
+     ],
+     "value_label": "M",
+     "generic": false
+    },
+    {
+     "key": "is_bundleable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "purchase_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "negotiation_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "country_isocode3166",
+     "value": "FR",
+     "values": [
+      "FR"
+     ],
+     "value_label": "FR",
+     "generic": false
+    },
+    {
+     "key": "decoration_type",
+     "value": "bibelot",
+     "values": [
+      "bibelot"
+     ],
+     "key_label": "Type",
+     "value_label": "Bibelot",
+     "generic": true
+    },
+    {
+     "key": "shipping_type",
+     "value": "mondial_relay",
+     "values": [
+      "mondial_relay",
+      "face_to_face"
+     ],
+     "value_label": "mondial_relay",
+     "generic": false
+    },
+    {
+     "key": "shippable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "is_import",
+     "value": "false",
+     "values": [
+      "false"
+     ],
+     "value_label": "false",
+     "generic": false
+    },
+    {
+     "key": "payment_methods",
+     "value": "installments3x",
+     "values": [
+      "installments3x",
+      "installments4x"
+     ],
+     "value_label": "installments3x",
+     "generic": false
+    }
+   ],
+   "location": {
+    "country_id": "FR",
+    "region_id": "5",
+    "region_name": "Bourgogne",
+    "department_id": "58",
+    "department_name": "Nièvre",
+    "city_label": "Saint-Léger-des-Vignes 58300",
+    "city": "Saint-Léger-des-Vignes",
+    "zipcode": "58300",
+    "lat": 46.83862,
+    "lng": 3.45406,
+    "source": "city",
+    "provider": "here",
+    "is_shape": true,
+    "feature": {
+     "type": "Feature",
+     "geometry": {
+      "type": "Point",
+      "coordinates": [
+       3.45406,
+       46.83862
+      ]
+     },
+     "properties": null
+    }
+   },
+   "owner": {
+    "store_id": "13871152",
+    "user_id": "14b10464-b8a0-4a80-a9e6-bc34cf878792",
+    "type": "private",
+    "name": "trouv'tout",
+    "no_salesmen": true,
+    "activity_sector": ""
+   },
+   "options": {
+    "has_option": false,
+    "booster": false,
+    "photosup": false,
+    "urgent": false,
+    "gallery": false,
+    "sub_toplist": false,
+    "continuous_top_ads": false,
+    "highlight": false
+   },
+   "has_phone": false,
+   "counters": {}
+  },
+  {
+   "list_id": 3059311104,
+   "first_publication_date": "2025-09-17 15:56:06",
+   "index_date": "2025-09-17 15:56:06",
+   "status": "active",
+   "category_id": "27",
+   "category_name": "Livres",
+   "subject": "Livres de recettes Jean-Pierre Coffe",
+   "body": "",
+   "brand": "leboncoin",
+   "ad_type": "offer",
+   "url": "https://www.leboncoin.fr/ad/livres/3059311104",
+   "price": [
+    12
+   ],
+   "price_cents": 1200,
+   "images": {
+    "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-thumb",
+    "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-small",
+    "nb_images": 11,
+    "urls": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/c4/67/40/c46740e3a5b88fe2ec6600ce8f0dd8a65fc61be0.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/2b/96/94/2b969448ea9a5d4824d7d2a0648491c247fd4a98.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/dd/42/91/dd4291bd25210f5f085afecac1bd4be6411e646e.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d5/a3/cc/d5a3cc21fea27a0f710f1cabe81635c6f4337a91.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/ec/8d/ca/ec8dca52fad32e8b97baa33a78930195952e481a.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/21/a1/b4/21a1b4f2bec0a191f620ec23fe29f7ffad6c791e.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/67/d0/bf/67d0bf4e496d77c7a0d29c1e81175da06fde0f0c.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e2/a8/b4/e2a8b40fb1f710d61d45481477dfa6bff845603e.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/52/b5/86/52b58698771133a1cf549d4cabadc092ddf0846a.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/4c/51/d1/4c51d18deef3a7c2455c2f07884cada723467678.jpg?rule=ad-image"
+    ],
+    "urls_thumb": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/c4/67/40/c46740e3a5b88fe2ec6600ce8f0dd8a65fc61be0.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/2b/96/94/2b969448ea9a5d4824d7d2a0648491c247fd4a98.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/dd/42/91/dd4291bd25210f5f085afecac1bd4be6411e646e.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d5/a3/cc/d5a3cc21fea27a0f710f1cabe81635c6f4337a91.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/ec/8d/ca/ec8dca52fad32e8b97baa33a78930195952e481a.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/21/a1/b4/21a1b4f2bec0a191f620ec23fe29f7ffad6c791e.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/67/d0/bf/67d0bf4e496d77c7a0d29c1e81175da06fde0f0c.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e2/a8/b4/e2a8b40fb1f710d61d45481477dfa6bff845603e.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/52/b5/86/52b58698771133a1cf549d4cabadc092ddf0846a.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/4c/51/d1/4c51d18deef3a7c2455c2f07884cada723467678.jpg?rule=ad-thumb"
+    ],
+    "urls_large": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/6c/c4/08/6cc4085016857b53023ad7835d1f75ef5cb125ff.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/c4/67/40/c46740e3a5b88fe2ec6600ce8f0dd8a65fc61be0.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/2b/96/94/2b969448ea9a5d4824d7d2a0648491c247fd4a98.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/dd/42/91/dd4291bd25210f5f085afecac1bd4be6411e646e.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/d5/a3/cc/d5a3cc21fea27a0f710f1cabe81635c6f4337a91.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/ec/8d/ca/ec8dca52fad32e8b97baa33a78930195952e481a.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/21/a1/b4/21a1b4f2bec0a191f620ec23fe29f7ffad6c791e.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/67/d0/bf/67d0bf4e496d77c7a0d29c1e81175da06fde0f0c.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e2/a8/b4/e2a8b40fb1f710d61d45481477dfa6bff845603e.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/52/b5/86/52b58698771133a1cf549d4cabadc092ddf0846a.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/4c/51/d1/4c51d18deef3a7c2455c2f07884cada723467678.jpg?rule=ad-large"
+    ]
+   },
+   "attributes": [
+    {
+     "key": "rating_score",
+     "value": "1",
+     "values": [
+      "1"
+     ],
+     "value_label": "1",
+     "generic": false
+    },
+    {
+     "key": "rating_count",
+     "value": "3",
+     "values": [
+      "3"
+     ],
+     "value_label": "3",
+     "generic": false
+    },
+    {
+     "key": "profile_picture_url",
+     "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/cf2e181f-af38-5763-9267-ec9e9b165628?rule=pp-small",
+     "values": [
+      "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/cf2e181f-af38-5763-9267-ec9e9b165628?rule=pp-small"
+     ],
+     "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/cf2e181f-af38-5763-9267-ec9e9b165628?rule=pp-small",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_weight",
+     "value": "2325",
+     "values": [
+      "2325"
+     ],
+     "value_label": "2325",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_size",
+     "value": "S",
+     "values": [
+      "S"
+     ],
+     "value_label": "S",
+     "generic": false
+    },
+    {
+     "key": "is_bundleable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "purchase_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "negotiation_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "country_isocode3166",
+     "value": "FR",
+     "values": [
+      "FR"
+     ],
+     "value_label": "FR",
+     "generic": false
+    },
+    {
+     "key": "condition",
+     "value": "bonetat",
+     "values": [
+      "bonetat"
+     ],
+     "key_label": "État",
+     "value_label": "Bon état",
+     "generic": true
+    },
+    {
+     "key": "shipping_type",
+     "value": "mondial_relay",
+     "values": [
+      "mondial_relay",
+      "shop2shop",
+      "colissimo",
+      "face_to_face"
+     ],
+     "value_label": "mondial_relay",
+     "generic": false
+    },
+    {
+     "key": "shippable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "is_import",
+     "value": "false",
+     "values": [
+      "false"
+     ],
+     "value_label": "false",
+     "generic": false
+    },
+    {
+     "key": "leisure_book_genre",
+     "value": "cooking",
+     "values": [
+      "cooking"
+     ],
+     "key_label": "Genre",
+     "value_label": "Cuisine",
+     "generic": true
+    }
+   ],
+   "location": {
+    "country_id": "FR",
+    "region_id": "12",
+    "region_name": "Ile-de-France",
+    "department_id": "77",
+    "department_name": "Seine-et-Marne",
+    "city_label": "Villeparisis 77270",
+    "city": "Villeparisis",
+    "zipcode": "77270",
+    "lat": 48.94163,
+    "lng": 2.60342,
+    "source": "address",
+    "provider": "here",
+    "is_shape": false,
+    "feature": {
+     "type": "Feature",
+     "geometry": {
+      "type": "Point",
+      "coordinates": [
+       2.60342,
+       48.94163
+      ]
+     },
+     "properties": null
+    }
+   },
+   "owner": {
+    "store_id": "53796313",
+    "user_id": "5af59bf7-57db-42ed-9b04-a9a07f4f25b5",
+    "type": "private",
+    "name": "CHANDINI",
+    "no_salesmen": true,
+    "activity_sector": ""
+   },
+   "options": {
+    "has_option": false,
+    "booster": false,
+    "photosup": false,
+    "urgent": false,
+    "gallery": false,
+    "sub_toplist": false,
+    "continuous_top_ads": false,
+    "highlight": false
+   },
+   "has_phone": false,
+   "counters": {}
+  },
+  {
+   "list_id": 3056184539,
+   "first_publication_date": "2025-09-12 15:26:00",
+   "index_date": "2025-09-12 15:26:00",
+   "status": "active",
+   "category_id": "45",
+   "category_name": "Arts de la table",
+   "subject": "Lot de 3 tasses / sous tasses coffé al volo 2002",
+   "body": "",
+   "brand": "leboncoin",
+   "ad_type": "offer",
+   "url": "https://www.leboncoin.fr/ad/arts_de_la_table/3056184539",
+   "price": [
+    60
+   ],
+   "price_cents": 6000,
+   "images": {
+    "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-thumb",
+    "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-small",
+    "nb_images": 3,
+    "urls": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/43/56/b7/4356b708d2275e8327ae430eb0cf6f81588c79da.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/0a/51/a6/0a51a69c6579981b08933a16147c178bcd2d6a09.jpg?rule=ad-image"
+    ],
+    "urls_thumb": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/43/56/b7/4356b708d2275e8327ae430eb0cf6f81588c79da.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/0a/51/a6/0a51a69c6579981b08933a16147c178bcd2d6a09.jpg?rule=ad-thumb"
+    ],
+    "urls_large": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/3c/7d/9b/3c7d9b0f944ca5de64389df36f141b9bed85cd3f.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/43/56/b7/4356b708d2275e8327ae430eb0cf6f81588c79da.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/0a/51/a6/0a51a69c6579981b08933a16147c178bcd2d6a09.jpg?rule=ad-large"
+    ]
+   },
+   "attributes": [
+    {
+     "key": "rating_score",
+     "value": "0.98",
+     "values": [
+      "0.98"
+     ],
+     "value_label": "0.98",
+     "generic": false
+    },
+    {
+     "key": "rating_count",
+     "value": "385",
+     "values": [
+      "385"
+     ],
+     "value_label": "385",
+     "generic": false
+    },
+    {
+     "key": "profile_picture_url",
+     "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/70076f1c-1ae8-5bed-9b04-fcf927f48c1b?rule=pp-small",
+     "values": [
+      "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/70076f1c-1ae8-5bed-9b04-fcf927f48c1b?rule=pp-small"
+     ],
+     "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/70076f1c-1ae8-5bed-9b04-fcf927f48c1b?rule=pp-small",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_weight",
+     "value": "1000",
+     "values": [
+      "1000"
+     ],
+     "value_label": "1000",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_size",
+     "value": "M",
+     "values": [
+      "M"
+     ],
+     "value_label": "M",
+     "generic": false
+    },
+    {
+     "key": "is_bundleable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "purchase_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "negotiation_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "country_isocode3166",
+     "value": "FR",
+     "values": [
+      "FR"
+     ],
+     "value_label": "FR",
+     "generic": false
+    },
+    {
+     "key": "shipping_type",
+     "value": "mondial_relay",
+     "values": [
+      "mondial_relay",
+      "shop2shop",
+      "courrier_suivi",
+      "colissimo",
+      "face_to_face"
+     ],
+     "value_label": "mondial_relay",
+     "generic": false
+    },
+    {
+     "key": "shippable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "is_import",
+     "value": "false",
+     "values": [
+      "false"
+     ],
+     "value_label": "false",
+     "generic": false
+    }
+   ],
+   "location": {
+    "country_id": "FR",
+    "region_id": "21",
+    "region_name": "Provence-Alpes-Côte d'Azur",
+    "department_id": "6",
+    "department_name": "Alpes-Maritimes",
+    "city_label": "Mandelieu-la-Napoule 06210 La Napoule",
+    "city": "Mandelieu-la-Napoule",
+    "zipcode": "06210",
+    "district": "La Napoule",
+    "lat": 43.52246,
+    "lng": 6.94051,
+    "source": "city",
+    "provider": "here",
+    "is_shape": true,
+    "feature": {
+     "type": "Feature",
+     "geometry": {
+      "type": "Point",
+      "coordinates": [
+       6.94051,
+       43.52246
+      ]
+     },
+     "properties": null
+    }
+   },
+   "owner": {
+    "store_id": "11679692",
+    "user_id": "57c04de8-46ca-4aa1-ab55-466f8be30ad6",
+    "type": "private",
+    "name": "blanc",
+    "no_salesmen": true,
+    "activity_sector": ""
+   },
+   "options": {
+    "has_option": false,
+    "booster": false,
+    "photosup": false,
+    "urgent": false,
+    "gallery": false,
+    "sub_toplist": false,
+    "continuous_top_ads": false,
+    "highlight": false
+   },
+   "has_phone": false,
+   "counters": {}
+  },
+  {
+   "list_id": 3054893595,
+   "first_publication_date": "2025-09-10 11:27:21",
+   "index_date": "2025-09-10 11:27:21",
+   "status": "active",
+   "category_id": "27",
+   "category_name": "Livres",
+   "subject": "Recettes de dimanche prochain coffe drudker",
+   "body": "",
+   "brand": "leboncoin",
+   "ad_type": "offer",
+   "url": "https://www.leboncoin.fr/ad/livres/3054893595",
+   "price": [
+    8
+   ],
+   "price_cents": 800,
+   "images": {
+    "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-thumb",
+    "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-small",
+    "nb_images": 5,
+    "urls": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/7f/8a/ee/7f8aee64ce99f35418fc4f66053fa5a5745cdbcb.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/39/70/f2/3970f254bdec7e83c4d472c4586bbe02dabfd940.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/8f/b8/1c/8fb81c557bb1660d15bd2eceee03dcd84e4e89af.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e9/f3/17/e9f3179ccbf2369f18faee8c1b1f398f0345b80c.jpg?rule=ad-image"
+    ],
+    "urls_thumb": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/7f/8a/ee/7f8aee64ce99f35418fc4f66053fa5a5745cdbcb.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/39/70/f2/3970f254bdec7e83c4d472c4586bbe02dabfd940.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/8f/b8/1c/8fb81c557bb1660d15bd2eceee03dcd84e4e89af.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e9/f3/17/e9f3179ccbf2369f18faee8c1b1f398f0345b80c.jpg?rule=ad-thumb"
+    ],
+    "urls_large": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e5/43/ee/e543eee50a6e3a3794f452110e6e5abd46aa41f7.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/7f/8a/ee/7f8aee64ce99f35418fc4f66053fa5a5745cdbcb.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/39/70/f2/3970f254bdec7e83c4d472c4586bbe02dabfd940.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/8f/b8/1c/8fb81c557bb1660d15bd2eceee03dcd84e4e89af.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/e9/f3/17/e9f3179ccbf2369f18faee8c1b1f398f0345b80c.jpg?rule=ad-large"
+    ]
+   },
+   "attributes": [
+    {
+     "key": "rating_score",
+     "value": "1",
+     "values": [
+      "1"
+     ],
+     "value_label": "1",
+     "generic": false
+    },
+    {
+     "key": "rating_count",
+     "value": "13",
+     "values": [
+      "13"
+     ],
+     "value_label": "13",
+     "generic": false
+    },
+    {
+     "key": "profile_picture_url",
+     "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/1f2835e9-3312-5782-8d4a-566403e79d4f?rule=pp-small",
+     "values": [
+      "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/1f2835e9-3312-5782-8d4a-566403e79d4f?rule=pp-small"
+     ],
+     "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/1f2835e9-3312-5782-8d4a-566403e79d4f?rule=pp-small",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_weight",
+     "value": "1093",
+     "values": [
+      "1093"
+     ],
+     "value_label": "1093",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_size",
+     "value": "S",
+     "values": [
+      "S"
+     ],
+     "value_label": "S",
+     "generic": false
+    },
+    {
+     "key": "is_bundleable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "purchase_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "negotiation_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "country_isocode3166",
+     "value": "FR",
+     "values": [
+      "FR"
+     ],
+     "value_label": "FR",
+     "generic": false
+    },
+    {
+     "key": "condition",
+     "value": "tresbonetat",
+     "values": [
+      "tresbonetat"
+     ],
+     "key_label": "État",
+     "value_label": "Très bon état",
+     "generic": true
+    },
+    {
+     "key": "shipping_type",
+     "value": "mondial_relay",
+     "values": [
+      "mondial_relay",
+      "shop2shop",
+      "courrier_suivi",
+      "colissimo",
+      "face_to_face"
+     ],
+     "value_label": "mondial_relay",
+     "generic": false
+    },
+    {
+     "key": "shippable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "is_import",
+     "value": "false",
+     "values": [
+      "false"
+     ],
+     "value_label": "false",
+     "generic": false
+    },
+    {
+     "key": "leisure_book_genre",
+     "value": "cooking",
+     "values": [
+      "cooking"
+     ],
+     "key_label": "Genre",
+     "value_label": "Cuisine",
+     "generic": true
+    }
+   ],
+   "location": {
+    "country_id": "FR",
+    "region_id": "11",
+    "region_name": "Haute-Normandie",
+    "department_id": "76",
+    "department_name": "Seine-Maritime",
+    "city_label": "Oissel 76350",
+    "city": "Oissel",
+    "zipcode": "76350",
+    "lat": 49.34101,
+    "lng": 1.09587,
+    "source": "city",
+    "provider": "here",
+    "is_shape": true,
+    "feature": {
+     "type": "Feature",
+     "geometry": {
+      "type": "Point",
+      "coordinates": [
+       1.09587,
+       49.34101
+      ]
+     },
+     "properties": null
+    }
+   },
+   "owner": {
+    "store_id": "78335319",
+    "user_id": "6cbd1102-5677-42ac-802d-148b653abe1b",
+    "type": "private",
+    "name": "Josiane",
+    "no_salesmen": true,
+    "activity_sector": ""
+   },
+   "options": {
+    "has_option": false,
+    "booster": false,
+    "photosup": false,
+    "urgent": false,
+    "gallery": false,
+    "sub_toplist": false,
+    "continuous_top_ads": false,
+    "highlight": false
+   },
+   "has_phone": false,
+   "counters": {}
+  },
+  {
+   "list_id": 3060606466,
+   "first_publication_date": "2025-09-19 22:15:42",
+   "index_date": "2025-09-19 22:15:42",
+   "status": "active",
+   "category_id": "27",
+   "category_name": "Livres",
+   "subject": "Coffe Shop secrets de Barista",
+   "body": "",
+   "brand": "leboncoin",
+   "ad_type": "offer",
+   "url": "https://www.leboncoin.fr/ad/livres/3060606466",
+   "price": [
+    4
+   ],
+   "price_cents": 400,
+   "images": {
+    "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-thumb",
+    "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-small",
+    "nb_images": 4,
+    "urls": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/82/48/2f/82482fa343a2d23d184fcb722d1a53479662e88f.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/10/3c/ca/103cca6c14166093e23619445cb0f771866d15db.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/f6/31/c2/f631c28f6eaf131b85b03507892dee2e9a1ffce3.jpg?rule=ad-image"
+    ],
+    "urls_thumb": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/82/48/2f/82482fa343a2d23d184fcb722d1a53479662e88f.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/10/3c/ca/103cca6c14166093e23619445cb0f771866d15db.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/f6/31/c2/f631c28f6eaf131b85b03507892dee2e9a1ffce3.jpg?rule=ad-thumb"
+    ],
+    "urls_large": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/bc/1a/bd/bc1abdc6a4cba8098947391654c34cdc073d852e.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/82/48/2f/82482fa343a2d23d184fcb722d1a53479662e88f.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/10/3c/ca/103cca6c14166093e23619445cb0f771866d15db.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/f6/31/c2/f631c28f6eaf131b85b03507892dee2e9a1ffce3.jpg?rule=ad-large"
+    ]
+   },
+   "attributes": [
+    {
+     "key": "rating_score",
+     "value": "0.99",
+     "values": [
+      "0.99"
+     ],
+     "value_label": "0.99",
+     "generic": false
+    },
+    {
+     "key": "rating_count",
+     "value": "124",
+     "values": [
+      "124"
+     ],
+     "value_label": "124",
+     "generic": false
+    },
+    {
+     "key": "profile_picture_url",
+     "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/ce316dc3-facb-542e-b7d8-b4709cead8e4?rule=pp-small",
+     "values": [
+      "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/ce316dc3-facb-542e-b7d8-b4709cead8e4?rule=pp-small"
+     ],
+     "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/ce316dc3-facb-542e-b7d8-b4709cead8e4?rule=pp-small",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_weight",
+     "value": "1000",
+     "values": [
+      "1000"
+     ],
+     "value_label": "1000",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_size",
+     "value": "S",
+     "values": [
+      "S"
+     ],
+     "value_label": "S",
+     "generic": false
+    },
+    {
+     "key": "is_bundleable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "purchase_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "negotiation_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "country_isocode3166",
+     "value": "FR",
+     "values": [
+      "FR"
+     ],
+     "value_label": "FR",
+     "generic": false
+    },
+    {
+     "key": "condition",
+     "value": "tresbonetat",
+     "values": [
+      "tresbonetat"
+     ],
+     "key_label": "État",
+     "value_label": "Très bon état",
+     "generic": true
+    },
+    {
+     "key": "shipping_type",
+     "value": "mondial_relay",
+     "values": [
+      "mondial_relay",
+      "shop2shop",
+      "courrier_suivi",
+      "colissimo",
+      "face_to_face"
+     ],
+     "value_label": "mondial_relay",
+     "generic": false
+    },
+    {
+     "key": "shippable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "is_import",
+     "value": "false",
+     "values": [
+      "false"
+     ],
+     "value_label": "false",
+     "generic": false
+    },
+    {
+     "key": "leisure_book_genre",
+     "value": "cooking",
+     "values": [
+      "cooking"
+     ],
+     "key_label": "Genre",
+     "value_label": "Cuisine",
+     "generic": true
+    }
+   ],
+   "location": {
+    "country_id": "FR",
+    "region_id": "12",
+    "region_name": "Ile-de-France",
+    "department_id": "94",
+    "department_name": "Val-de-Marne",
+    "city_label": "Charenton-le-Pont 94220",
+    "city": "Charenton-le-Pont",
+    "zipcode": "94220",
+    "lat": 48.82163,
+    "lng": 2.4135,
+    "source": "city",
+    "provider": "here",
+    "is_shape": true,
+    "feature": {
+     "type": "Feature",
+     "geometry": {
+      "type": "Point",
+      "coordinates": [
+       2.4135,
+       48.82163
+      ]
+     },
+     "properties": null
+    }
+   },
+   "owner": {
+    "store_id": "35148875",
+    "user_id": "f77fb419-9b76-4821-98be-a833913b419e",
+    "type": "private",
+    "name": "Fara",
+    "no_salesmen": true,
+    "activity_sector": ""
+   },
+   "options": {
+    "has_option": false,
+    "booster": false,
+    "photosup": false,
+    "urgent": false,
+    "gallery": false,
+    "sub_toplist": false,
+    "continuous_top_ads": false,
+    "highlight": false
+   },
+   "has_phone": false,
+   "counters": {}
+  },
+  {
+   "list_id": 3063429316,
+   "first_publication_date": "2025-09-24 15:22:26",
+   "index_date": "2025-09-24 15:22:26",
+   "status": "active",
+   "category_id": "27",
+   "category_name": "Livres",
+   "subject": "Jean pierre COFFE",
+   "body": "",
+   "brand": "leboncoin",
+   "ad_type": "offer",
+   "url": "https://www.leboncoin.fr/ad/livres/3063429316",
+   "price": [
+    5
+   ],
+   "price_cents": 500,
+   "images": {
+    "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-thumb",
+    "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-small",
+    "nb_images": 3,
+    "urls": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/3e/bf/13/3ebf13e9e2285a44b5fd16eff9734f9495376f82.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/28/a3/87/28a387fbbb64ba310eea18e60cbd7e47450cb98a.jpg?rule=ad-image"
+    ],
+    "urls_thumb": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/3e/bf/13/3ebf13e9e2285a44b5fd16eff9734f9495376f82.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/28/a3/87/28a387fbbb64ba310eea18e60cbd7e47450cb98a.jpg?rule=ad-thumb"
+    ],
+    "urls_large": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/08/ce/70/08ce707e0cb35fd4677378d39cd8b6307be5641c.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/3e/bf/13/3ebf13e9e2285a44b5fd16eff9734f9495376f82.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/28/a3/87/28a387fbbb64ba310eea18e60cbd7e47450cb98a.jpg?rule=ad-large"
+    ]
+   },
+   "attributes": [
+    {
+     "key": "rating_score",
+     "value": "1",
+     "values": [
+      "1"
+     ],
+     "value_label": "1",
+     "generic": false
+    },
+    {
+     "key": "rating_count",
+     "value": "1",
+     "values": [
+      "1"
+     ],
+     "value_label": "1",
+     "generic": false
+    },
+    {
+     "key": "profile_picture_url",
+     "value": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/ac2e885c-af0a-59a8-8ed9-985b850db114?rule=pp-small",
+     "values": [
+      "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/ac2e885c-af0a-59a8-8ed9-985b850db114?rule=pp-small"
+     ],
+     "value_label": "https://img.leboncoin.fr/api/v1/tenants/9a6387a1-6259-4f2c-a887-7e67f23dd4cb/domains/20bda58f-d650-462e-a72a-a5a7ecf2bf88/buckets/21d2b0bc-e54c-4b64-a30b-89127b18b785/images/profile/pictures/default/ac2e885c-af0a-59a8-8ed9-985b850db114?rule=pp-small",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_weight",
+     "value": "1491",
+     "values": [
+      "1491"
+     ],
+     "value_label": "1491",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_size",
+     "value": "S",
+     "values": [
+      "S"
+     ],
+     "value_label": "S",
+     "generic": false
+    },
+    {
+     "key": "is_bundleable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "purchase_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "negotiation_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "country_isocode3166",
+     "value": "FR",
+     "values": [
+      "FR"
+     ],
+     "value_label": "FR",
+     "generic": false
+    },
+    {
+     "key": "condition",
+     "value": "bonetat",
+     "values": [
+      "bonetat"
+     ],
+     "key_label": "État",
+     "value_label": "Bon état",
+     "generic": true
+    },
+    {
+     "key": "shipping_type",
+     "value": "mondial_relay",
+     "values": [
+      "mondial_relay",
+      "shop2shop",
+      "courrier_suivi",
+      "colissimo",
+      "face_to_face"
+     ],
+     "value_label": "mondial_relay",
+     "generic": false
+    },
+    {
+     "key": "shippable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "is_import",
+     "value": "false",
+     "values": [
+      "false"
+     ],
+     "value_label": "false",
+     "generic": false
+    },
+    {
+     "key": "leisure_book_genre",
+     "value": "cooking",
+     "values": [
+      "cooking"
+     ],
+     "key_label": "Genre",
+     "value_label": "Cuisine",
+     "generic": true
+    }
+   ],
+   "location": {
+    "country_id": "FR",
+    "region_id": "6",
+    "region_name": "Bretagne",
+    "department_id": "56",
+    "department_name": "Morbihan",
+    "city_label": "Saint-Nolff 56250",
+    "city": "Saint-Nolff",
+    "zipcode": "56250",
+    "lat": 47.70607,
+    "lng": -2.65354,
+    "source": "city",
+    "provider": "here",
+    "is_shape": true,
+    "feature": {
+     "type": "Feature",
+     "geometry": {
+      "type": "Point",
+      "coordinates": [
+       -2.65354,
+       47.70607
+      ]
+     },
+     "properties": null
+    }
+   },
+   "owner": {
+    "store_id": "12264219",
+    "user_id": "2b32e859-1b23-4481-a9ea-5f1e3d51fdbe",
+    "type": "private",
+    "name": "fred56",
+    "no_salesmen": true,
+    "activity_sector": ""
+   },
+   "options": {
+    "has_option": false,
+    "booster": false,
+    "photosup": false,
+    "urgent": false,
+    "gallery": false,
+    "sub_toplist": false,
+    "continuous_top_ads": false,
+    "highlight": false
+   },
+   "has_phone": false,
+   "counters": {}
+  },
+  {
+   "list_id": 3028184496,
+   "first_publication_date": "2025-07-23 23:24:00",
+   "index_date": "2025-09-17 19:25:22",
+   "status": "active",
+   "category_id": "27",
+   "category_name": "Livres",
+   "subject": "L'almanach Jean-Pierre Coffe",
+   "body": "",
+   "brand": "leboncoin",
+   "ad_type": "offer",
+   "url": "https://www.leboncoin.fr/ad/livres/3028184496",
+   "price": [
+    4
+   ],
+   "price_cents": 349,
+   "images": {
+    "thumb_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-thumb",
+    "small_url": "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-small",
+    "nb_images": 2,
+    "urls": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-image",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/db/2d/1ddb2dd08c4e94eb0e640fb5a65537a0eb05b54a.jpg?rule=ad-image"
+    ],
+    "urls_thumb": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-thumb",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/db/2d/1ddb2dd08c4e94eb0e640fb5a65537a0eb05b54a.jpg?rule=ad-thumb"
+    ],
+    "urls_large": [
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/df/fb/8b/dffb8bae8a722e78eccd51d6cda9cba70f61cadb.jpg?rule=ad-large",
+     "https://img.leboncoin.fr/api/v1/lbcpb1/images/1d/db/2d/1ddb2dd08c4e94eb0e640fb5a65537a0eb05b54a.jpg?rule=ad-large"
+    ]
+   },
+   "attributes": [
+    {
+     "key": "activity_sector",
+     "value": "5",
+     "values": [
+      "5"
+     ],
+     "value_label": "5",
+     "generic": false
+    },
+    {
+     "key": "rating_score",
+     "value": "0.98",
+     "values": [
+      "0.98"
+     ],
+     "value_label": "0.98",
+     "generic": false
+    },
+    {
+     "key": "rating_count",
+     "value": "27279",
+     "values": [
+      "27279"
+     ],
+     "value_label": "27279",
+     "generic": false
+    },
+    {
+     "key": "estimated_parcel_weight",
+     "value": "300",
+     "values": [
+      "300"
+     ],
+     "value_label": "300",
+     "generic": false
+    },
+    {
+     "key": "stock_quantity",
+     "value": "1",
+     "values": [
+      "1"
+     ],
+     "value_label": "1",
+     "generic": false
+    },
+    {
+     "key": "purchase_cta_visible",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "country_isocode3166",
+     "value": "FR",
+     "values": [
+      "FR"
+     ],
+     "value_label": "FR",
+     "generic": false
+    },
+    {
+     "key": "ean",
+     "value": "EAN9782081368163",
+     "values": [
+      "EAN9782081368163"
+     ],
+     "key_label": "Code-barres EAN",
+     "value_label": "EAN9782081368163",
+     "generic": false
+    },
+    {
+     "key": "condition",
+     "value": "bonetat",
+     "values": [
+      "bonetat"
+     ],
+     "key_label": "État",
+     "value_label": "Bon état",
+     "generic": true
+    },
+    {
+     "key": "new_item_price",
+     "value": "349",
+     "values": [
+      "349"
+     ],
+     "value_label": "349",
+     "generic": false
+    },
+    {
+     "key": "shipping_type",
+     "value": "distance",
+     "values": [
+      "distance"
+     ],
+     "value_label": "distance",
+     "generic": false
+    },
+    {
+     "key": "shipping_cost",
+     "value": "350",
+     "values": [
+      "350"
+     ],
+     "value_label": "350",
+     "generic": false
+    },
+    {
+     "key": "shippable",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    },
+    {
+     "key": "custom_ref",
+     "value": "G298957",
+     "values": [
+      "G298957"
+     ],
+     "key_label": "Référence",
+     "value_label": "G298957",
+     "generic": false
+    },
+    {
+     "key": "is_import",
+     "value": "true",
+     "values": [
+      "true"
+     ],
+     "value_label": "true",
+     "generic": false
+    }
+   ],
+   "location": {
+    "country_id": "FR",
+    "region_id": "12",
+    "region_name": "Ile-de-France",
+    "department_id": "91",
+    "department_name": "Essonne",
+    "city_label": "Morangis 91420",
+    "city": "Morangis",
+    "zipcode": "91420",
+    "lat": 48.70484,
+    "lng": 2.33299,
+    "source": "city",
+    "provider": "here",
+    "is_shape": true,
+    "feature": {
+     "type": "Feature",
+     "geometry": {
+      "type": "Point",
+      "coordinates": [
+       2.33299,
+       48.70484
+      ]
+     },
+     "properties": null
+    }
+   },
+   "owner": {
+    "store_id": "77397972",
+    "user_id": "dcf1c124-7a14-4d45-95dd-aff1327a6a78",
+    "type": "pro",
+    "name": "AMMAREAL",
+    "siren": "797906906",
+    "no_salesmen": false,
+    "activity_sector": "5"
+   },
+   "options": {
+    "has_option": false,
+    "booster": false,
+    "photosup": false,
+    "urgent": false,
+    "gallery": false,
+    "sub_toplist": false,
+    "continuous_top_ads": false,
+    "highlight": false
+   },
+   "has_phone": false,
+   "counters": {}
+  }
+ ],
+ "total": 70,
+ "max_pages": 3
+}

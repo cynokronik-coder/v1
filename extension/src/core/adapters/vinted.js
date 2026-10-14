@@ -112,6 +112,9 @@ export function parseItems(payload, { domain = DEFAULT_DOMAIN, marketplace = "vi
         brand: labels.brand,
         size: labels.size,
         imageUrl: item.photo?.url || item.photos?.[0]?.url || item.image_url || null,
+        // The catalogue endpoint does not usually return a description; when a
+        // payload carries one it is kept, because the exact-phrase gate reads it.
+        description: item.description || item.description_short || null,
         favourites: item.favourite_count ?? null,
         createdAt: null,
         raw: item,

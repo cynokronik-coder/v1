@@ -1,0 +1,88 @@
+# marketwatch watch list.
+# Each watch = one product you want to price-track. Copy to config/watches.yaml.
+#
+# Marketplaces: vinted | leboncoin | ebay | mock
+#   vinted, leboncoin -> unofficial endpoints, personal use only, need
+#                        `acknowledge_terms: true`; see README "Legal & terms"
+#   ebay              -> official Browse API, needs EBAY_CLIENT_ID / EBAY_CLIENT_SECRET
+
+# Values here are inherited by every watch; override per watch.
+defaults:
+  min_discount: 0.30        # flag listings >=30% below the estimated market price
+  max_robust_z: -1.0        # ...and >=1 robust sigma below the median
+                            #    (-2.0 is extremely strict: ~50% under)
+  min_sample_size: 8        # refuse to judge a market with fewer comparables
+  sample_pages: 3           # pages fetched to build the comparable pool
+  plausible_min_price: 5    # below this = junk listing, not a bargain
+  plausible_max_price: 3000
+  comps_ttl_seconds: 900    # reuse the baseline for 15 min (fewer requests)
+
+watches:
+  - name: nike-air-max-90
+    marketplace: vinted
+    domain: vinted.fr
+    search_text: "nike air max 90"
+    must_match: ["air max 90"]              # keep the pool to the exact model
+    must_not_match: ["kids", "enfant", "toddler", "baby", "mini"]
+    sizes: ["42", "42.5", "43", "44"]       # empty list = all sizes
+    conditions: ["très bon état", "very good", "neuf", "new"]  # empty = all
+    plausible_min_price: 30
+    plausible_max_price: 250
+    min_discount: 0.35
+    # Required for unofficial marketplaces: confirms you read the ToS note in README.md
+    acknowledge_terms: false
+
+  - name: iphone-13-128
+    marketplace: vinted
+    domain: vinted.fr
+    search_text: "iphone 13 128"
+    must_match: ["iphone 13"]
+    must_not_match: ["pro", "mini", "plus", "coque", "case", "étui", "chargeur", "cable"]
+    plausible_min_price: 120
+    plausible_max_price: 600
+
+  # --- try it with no network, no ToS question, no keys -----------------------
+  # A deterministic offline marketplace that plants real bargains plus junk. Use it
+  # to check that the tool works before pointing it at a real marketplace:
+  #   uv run marketwatch scan -w demo-offline -c config/watches.example.yaml
+  - name: demo-offline
+    marketplace: mock
+    search_text: "pixel 8"
+    min_discount: 0.30
+    max_robust_z: null        # the mock market is dispersed; score on discount alone
+    plausible_min_price: 20
+    plausible_max_price: 2000
+
+  # --- leboncoin (opt-in, see README "Legal & terms") -------------------------
+  # No public API exists and robots.txt forbids automatic access, so this is for
+  # personal, low-volume use. It is behind DataDome: expect HTTP 403 from cloud
+  # hosts and when polling too fast, and run it from a home connection.
+  - name: iphone-13-lbc
+    marketplace: leboncoin
+    domain: www.leboncoin.fr
+    search_text: "iphone 13 128"
+    must_match: ["iphone 13"]
+    must_not_match: ["pro", "mini", "plus", "coque", "etui", "écran", "chargeur"]
+    filters:
+      # leboncoin-specific filter keys, read straight into the search request:
+      ad_type: ["offer"]        # never compare a "demande" (wanted ad) against offers
+      category: ["2978"]        # téléphones & objets connectés
+      owner_type: ["private"]   # drop professional sellers from the baseline
+      # regions: ["12"]         # optional: restrict to an area
+    plausible_min_price: 120
+    plausible_max_price: 600
+    min_discount: 0.35
+    max_robust_z: null          # this market is dispersed; discount-only scores better
+    sample_pages: 4             # leboncoin caps a page at 35 ads
+    acknowledge_terms: false    # set true once you have read the ToS note
+
+  # Terms-compliant path: eBay's official Browse API (needs EBAY_CLIENT_ID / SECRET).
+  - name: thinkpad-t480
+    marketplace: ebay
+    marketplace_id: EBAY_FR
+    search_text: "thinkpad t480"
+    must_match: ["t480"]
+    must_not_match: ["screen", "keyboard", "battery only", "charger", "dock"]
+    plausible_min_price: 100
+    plausible_max_price: 900
+    min_discount: 0.25

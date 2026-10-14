@@ -1,0 +1,18 @@
+# Live watches for local runs. See watches.example.yaml for a documented template.
+defaults:
+  min_sample_size: 10
+  sample_pages: 3
+  comps_ttl_seconds: 900
+
+watches:
+  - name: air-max-90
+    marketplace: vinted
+    domain: vinted.fr
+    search_text: "nike air max 90"
+    must_match: ["air max 90"]
+    must_not_match: ["kids", "toddler", "baby", "infant", "sole", "box only", "coque"]
+    sizes: ["41", "42", "42.5", "43", "44", "45", "US 9", "US 10"]
+    plausible_min_price: 15
+    plausible_max_price: 350
+    min_discount: 0.40
+    max_robust_z: null   # discount-only: this market is too dispersed for a z gate
