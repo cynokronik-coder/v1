@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "marketwatch - second-hand bargain finder",
+  "version": "0.1.0",
+  "description": "Estimates the real market price of a second-hand item, watches Vinted and leboncoin, and tells you when something is listed well below it.",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "alarms", "notifications", "tabs", "cookies"],
+  "host_permissions": [
+    "https://*.vinted.fr/*",
+    "https://*.vinted.com/*",
+    "https://*.vinted.de/*",
+    "https://*.vinted.co.uk/*",
+    "https://*.vinted.es/*",
+    "https://*.vinted.it/*",
+    "https://*.vinted.be/*",
+    "https://*.vinted.nl/*",
+    "https://*.vinted.pl/*",
+    "https://*.vinted.pt/*",
+    "https://*.vinted.at/*",
+    "https://*.vinted.lt/*",
+    "https://*.vinted.cz/*",
+    "https://*.vinted.sk/*",
+    "https://*.vinted.hu/*",
+    "https://*.vinted.se/*",
+    "https://*.vinted.dk/*",
+    "https://*.vinted.ro/*",
+    "https://*.leboncoin.fr/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "marketwatch - open the dashboard",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
