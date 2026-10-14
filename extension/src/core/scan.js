@@ -10,12 +10,14 @@
  *    watch becomes a report with an `error`, and the scan moves on.
  */
 
-import { UNOFFICIAL_MARKETPLACES, slimListing } from "./models.js";
+import { CREDENTIALED_MARKETPLACES, UNOFFICIAL_MARKETPLACES, slimListing } from "./models.js";
+import { sourceEnabled } from "./sources.js";
 import {
   buildStats,
   explainNoDeals,
   filterComparables,
   findDeals,
+  phraseRejections,
 } from "./analyzer.js";
 import { MarketplaceBlocked, MarketplaceError, ORDER } from "./adapters/base.js";
 
@@ -37,8 +39,14 @@ export function makeQuery(watch, { page = 1, perPage = DEFAULT_PER_PAGE, order =
 /** Why a watch is not being scanned at all (as opposed to failing). */
 export function skipReason(watch, settings) {
   if (!watch.enabled) return "disabled";
+  if (!sourceEnabled(watch.marketplace, settings)) {
+    return "switched off in the Sources page";
+  }
   if (UNOFFICIAL_MARKETPLACES[watch.marketplace] && !watch.acknowledgeTerms && !settings?.acknowledgeAll) {
     return "not acknowledged: read the terms note and set acknowledgeTerms on this watch";
+  }
+  if (CREDENTIALED_MARKETPLACES[watch.marketplace] && !settings?.credentials?.[watch.marketplace]) {
+    return `${watch.marketplace} needs credentials before it can be scanned: ${CREDENTIALED_MARKETPLACES[watch.marketplace]}`;
   }
   return null;
 }
@@ -77,6 +85,12 @@ export async function buildBaseline({ watch, adapter, store, settings, force = f
   }
 
   let comparables = filterComparables(pool, watch);
+  const droppedByPhrase = phraseRejections(pool, watch);
+  if (droppedByPhrase) {
+    notes.push(
+      `exact phrase "${watch.searchText}" removed ${droppedByPhrase} of ${pool.length} listing(s) whose title/description did not contain it`,
+    );
+  }
   if (comparables.length === 0) {
     notes.push(
       `no comparable listings for '${watch.searchText}' (${pool.length} listings fetched, all filtered out)`,

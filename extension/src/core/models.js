@@ -4,7 +4,13 @@
  * Watch keys accept both this extension's camelCase and the Python tool's
  * snake_case (min_discount, plausible_min_price, ...), so a config written for one
  * can be pasted into the other.
+ *
+ * Which marketplaces exist, how they are reached and what their terms say lives in
+ * core/sources.js; models.js derives its lists from there rather than keeping a
+ * second copy that can drift.
  */
+
+import { BUY_SOURCES, RESALE_REFERENCE_SOURCES, SOURCES, TERMS } from "./sources.js";
 
 export class ConfigError extends Error {
   constructor(message) {
@@ -13,20 +19,27 @@ export class ConfigError extends Error {
   }
 }
 
-export const MARKETPLACES = ["vinted", "leboncoin", "mock"];
+// --- the source registry is the single source of truth -----------------------
+// core/sources.js lists every marketplace with its access path, terms status and
+// pacing; these four exports are the derived views the rest of the code imports, so
+// adding a marketplace is a change in one place.
+
+/** Marketplaces a watch can point at. */
+export const MARKETPLACES = [...BUY_SOURCES];
+
+/** Resale-reference sources: not necessarily something you watch, but something you
+ *  price against. `manual` is the price you read yourself and typed in. */
+export const RESALE_SOURCES = [...RESALE_REFERENCE_SOURCES, "manual"];
+
+/** Marketplaces that need credentials before they can be used at all. */
+export const CREDENTIALED_MARKETPLACES = Object.fromEntries(
+  SOURCES.filter((source) => source.credentials).map((source) => [source.id, source.credentials.note]),
+);
 
 /** Marketplaces whose endpoints are unofficial: these need acknowledgeTerms. */
-export const UNOFFICIAL_MARKETPLACES = {
-  vinted:
-    "Vinted has no public API for searching other people's listings; this uses the " +
-    "endpoint its own web app calls. Vinted's terms forbid scraping/bots, so keep it " +
-    "to personal, low-volume research on your own responsibility.",
-  leboncoin:
-    "Leboncoin has no public API for searching listings and its robots.txt forbids " +
-    "'search robots or other automatic methods'. This extension uses the same " +
-    "endpoints its own browser client calls, from your own browser session. Personal, " +
-    "low-volume use only.",
-};
+export const UNOFFICIAL_MARKETPLACES = Object.fromEntries(
+  SOURCES.filter((source) => source.terms !== TERMS.DOCUMENTED).map((source) => [source.id, source.termsNote]),
+);
 
 function pick(obj, ...keys) {
   for (const key of keys) {
@@ -52,6 +65,11 @@ export const WATCH_DEFAULTS = {
   marketplace: "vinted",
   domain: null,
   filters: {},
+  // Off by default so a config written for the Python tool (which has no such
+  // field) behaves exactly as it did there. The dashboard's watch editor ticks it
+  // for every new watch, because "does this listing even mention my product" is
+  // the question people expect a price tool to answer.
+  exactPhrase: false,
   mustMatch: [],
   mustNotMatch: [],
   conditions: [],
@@ -98,6 +116,10 @@ export function normalizeWatch(raw, defaults = {}, index = 0) {
     mustNotMatch: asArray(pick(merged, "mustNotMatch", "must_not_match")),
     conditions: asArray(pick(merged, "conditions")),
     sizes: asArray(pick(merged, "sizes")),
+    exactPhrase:
+      pick(merged, "exactPhrase", "exact_phrase") === undefined
+        ? WATCH_DEFAULTS.exactPhrase
+        : Boolean(pick(merged, "exactPhrase", "exact_phrase")),
     plausibleMinPrice: asNumber(pick(merged, "plausibleMinPrice", "plausible_min_price"), WATCH_DEFAULTS.plausibleMinPrice),
     plausibleMaxPrice: asNumber(pick(merged, "plausibleMaxPrice", "plausible_max_price"), WATCH_DEFAULTS.plausibleMaxPrice),
     samplePages: Math.max(1, asNumber(pick(merged, "samplePages", "sample_pages"), WATCH_DEFAULTS.samplePages)),
@@ -144,6 +166,7 @@ export function makeListing({
   brand = null,
   size = null,
   imageUrl = null,
+  description = null,
   favourites = null,
   createdAt = null,
   sellerType = null,
@@ -161,6 +184,10 @@ export function makeListing({
     brand: brand || null,
     size: size || null,
     imageUrl: imageUrl || null,
+    // Most marketplaces only return a title in search results; when the payload
+    // carries a description too it is kept, because the exact-phrase filter and
+    // the opportunities page both get more honest with it.
+    description: description ? String(description).trim().slice(0, 2000) : null,
     favourites: favourites === null ? null : Number(favourites),
     createdAt: createdAt || null,
     sellerType: sellerType || null,
@@ -183,6 +210,7 @@ export function slimListing(listing) {
     brand: listing.brand ?? null,
     size: listing.size ?? null,
     imageUrl: listing.imageUrl ?? null,
+    description: listing.description ?? null,
     favourites: listing.favourites ?? null,
     createdAt: listing.createdAt ?? null,
   };

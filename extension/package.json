@@ -1,12 +1,12 @@
 {
   "name": "marketwatch-extension",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.3.0",
   "type": "module",
-  "description": "Browser extension: estimate a second-hand item's real market price and surface listings below it.",
+  "description": "Browser extension: estimate a second-hand item's real market price, watch eleven marketplaces at once, and find products that are cheaper to buy than to resell.",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "lint": "node --check src/background.js && node --check src/dashboard.js && node --check src/ui/format.js && node --check src/ui/watch-form.js"
+    "lint": "for f in $(find src -name '*.js'); do node --check \"$f\" || exit 1; done && echo 'syntax ok'"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

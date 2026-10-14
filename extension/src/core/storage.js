@@ -12,9 +12,19 @@
  * above is unit-tested in node against an in-memory backend.
  */
 
-export const STATE_VERSION = 1;
+export const STATE_VERSION = 2;
 export const RE_ALERT_DROP = 0.05;
-export const LIMITS = { seenPerWatch: 3000, alerts: 500, log: 100 };
+export const LIMITS = {
+  seenPerWatch: 3000,
+  alerts: 500,
+  log: 100,
+  // The history page reads these: one row per scan pass per watch, plus one row
+  // per opportunities run. Long enough to see a price trend, short enough that
+  // chrome.storage.local stays small.
+  history: 400,
+  opportunityRuns: 50,
+  opportunities: 80,
+};
 
 export const DEFAULT_SETTINGS = {
   intervalMinutes: 15,
@@ -22,6 +32,40 @@ export const DEFAULT_SETTINGS = {
   notifications: true,
   leboncoinTransport: "auto",
   acknowledgeAll: false,
+  // --- opportunities page -------------------------------------------------
+  // eBay's keyset is the only credential this extension ever asks for, and it is
+  // only used against eBay's own official API. Stored locally, like everything else.
+  ebayClientId: "",
+  ebayClientSecret: "",
+  ebayMarketplaceId: "EBAY_FR",
+  backmarketDomain: "www.backmarket.fr",
+  opportunityIntervalMinutes: 720,
+  opportunityMinMargin: 0.15, // 15% net margin after fees and shipping
+  opportunityMinConfidence: "medium", // low | medium | high
+  opportunityPerPage: 40,
+  opportunityMaxProducts: 12, // how many catalogue entries one run samples
+  trendSources: { wikipedia: true, gdelt: false },
+  trendLanguage: "en",
+  socialKeywords: [], // whatever the user sees trending, pasted in by hand
+
+  // --- where the data comes from ------------------------------------------
+  // One entry per marketplace, keyed by its id from core/sources.js:
+  //   sources: { easycash: { enabled: true, mode: "open-tab", urlTemplate: "...",
+  //                          acknowledgeTerms: false, actor: "user~actor" } }
+  // Nothing is duplicated here: an absent entry means "use the registry's default".
+  sources: {},
+  // Third-party data providers: you bring the key, the extension makes the call.
+  apifyToken: "",
+  apifyActors: {}, // marketplace -> actor id, e.g. { vinted: "user~vinted-scraper" }
+  serpApiKey: "",
+  brightDataToken: "",
+  brightDataZone: "",
+  keepaKey: "",
+  // Google Shopping as an extra resale reference (one SerpApi search per product,
+  // so it is off until you ask for it: it costs money and it is not a marketplace).
+  googleShoppingResale: false,
+  // Apify as the fallback when a marketplace has no open tab and no usable URL.
+  useApifyFallback: false,
 };
 
 export function defaultState() {
@@ -33,6 +77,10 @@ export function defaultState() {
     seen: {},
     alerts: {},
     runs: {},
+    history: [],
+    catalog: [],
+    opportunities: [],
+    opportunityRuns: [],
     log: [],
   };
 }
@@ -98,6 +146,18 @@ export class Store {
     this.data = { ...defaultState(), ...(stored || {}) };
     this.data.settings = { ...DEFAULT_SETTINGS, ...(stored?.settings || {}) };
     return this;
+  }
+
+  /** Merge partially-provided limits over the defaults (tests pass one or two). */
+  _limit(name) {
+    return this.limits?.[name] ?? LIMITS[name];
+  }
+
+  /** Trim an array to the configured cap, dropping the oldest entries. */
+  _cap(list, name) {
+    const cap = this._limit(name);
+    if (typeof cap !== "number" || list.length <= cap) return list;
+    return list.slice(0, cap);
   }
 
   /** Serialise writes: the scan loop and the UI both mutate the same state. */
@@ -197,7 +257,13 @@ export class Store {
       } else {
         if (existing.status === "bought" || existing.status === "hidden") return false;
         if (!(price <= existing.price * (1 - RE_ALERT_DROP))) return false;
-        state.alerts[key] = { ...existing, ...buildAlert(deal, key), status: existing.status };
+        // The user's own marks (status, favourite) always win over a refresh.
+        state.alerts[key] = {
+          ...existing,
+          ...buildAlert(deal, key),
+          status: existing.status,
+          favourite: existing.favourite,
+        };
       }
       const keys = Object.keys(state.alerts);
       if (keys.length > this.limits.alerts) {
@@ -228,9 +294,30 @@ export class Store {
     });
   }
 
-  clearAlerts({ watch = null } = {}) {
+  /** Star/unstar a deal. Favourites survive "clear deals" only if you ask them to. */
+  setFavourite(key, favourite = true) {
     return this.mutate((state) => {
-      const removed = Object.keys(state.alerts).filter((key) => !watch || state.alerts[key].watch === watch);
+      const alert = state.alerts[key];
+      if (!alert) return null;
+      alert.favourite = Boolean(favourite);
+      alert.favouriteChangedAt = new Date().toISOString();
+      return alert;
+    });
+  }
+
+  favourites() {
+    return Object.values(this.data.alerts).filter((alert) => alert.favourite);
+  }
+
+  /** Delete stored deals; `keepFavourites` leaves the starred ones alone. */
+  clearAlerts({ watch = null, keepFavourites = false } = {}) {
+    return this.mutate((state) => {
+      const removed = Object.keys(state.alerts).filter((key) => {
+        const alert = state.alerts[key];
+        if (watch && alert.watch !== watch) return false;
+        if (keepFavourites && alert.favourite) return false;
+        return true;
+      });
       for (const key of removed) delete state.alerts[key];
       return removed.length;
     });
@@ -241,7 +328,83 @@ export class Store {
   recordRun(watchName, summary) {
     return this.mutate((state) => {
       state.runs[watchName] = summary;
+      // Keep a real scan history, not just the latest state per watch: the
+      // History page is how you see whether a market moved or the filters broke.
+      state.history = this._cap(
+        [
+          {
+            at: summary.at || new Date().toISOString(),
+            kind: "watch",
+            watch: watchName,
+            marketplace: summary.marketplace || null,
+            marketPrice: summary.marketPrice ?? null,
+            currency: summary.currency ?? null,
+            comparables: summary.comparables ?? 0,
+            deals: summary.deals ?? 0,
+            newDeals: summary.newDeals ?? 0,
+            requests: summary.requests ?? 0,
+            error: summary.error ?? null,
+            message: summary.message ?? null,
+          },
+          ...state.history,
+        ],
+        "history",
+      );
       return summary;
+    });
+  }
+
+  /** Rows for the History page: newest first, optionally one watch only. */
+  recentHistory({ limit = 100, watch = null, kind = null } = {}) {
+    let rows = this.data.history || [];
+    if (watch) rows = rows.filter((row) => row.watch === watch);
+    if (kind) rows = rows.filter((row) => row.kind === kind);
+    return rows.slice(0, limit);
+  }
+
+  // --- opportunities --------------------------------------------------------
+
+  /** The product catalogue the opportunities page samples (seeded on install). */
+  setCatalog(items) {
+    return this.mutate((state) => {
+      state.catalog = items;
+      return items.length;
+    });
+  }
+
+  saveOpportunities(entries) {
+    return this.mutate((state) => {
+      state.opportunities = this._cap(entries, "opportunities");
+      return state.opportunities.length;
+    });
+  }
+
+  recordOpportunityRun(summary) {
+    return this.mutate((state) => {
+      state.opportunityRuns = this._cap(
+        [{ at: new Date().toISOString(), ...summary }, ...(state.opportunityRuns || [])],
+        "opportunityRuns",
+      );
+      // The opportunities run is part of the history the user scrolls through.
+      state.history = this._cap(
+        [
+          {
+            at: new Date().toISOString(),
+            kind: "opportunities",
+            watch: null,
+            marketplace: null,
+            products: summary.products ?? 0,
+            deals: summary.verdicts?.buy ?? 0,
+            newDeals: summary.verdicts?.watch ?? 0,
+            requests: summary.requests ?? 0,
+            error: summary.errors?.length ? "failed" : null,
+            message: summary.errors?.[0] || null,
+          },
+          ...state.history,
+        ],
+        "history",
+      );
+      return state.opportunityRuns.length;
     });
   }
 
@@ -275,6 +438,7 @@ function buildAlert(deal, key) {
     brand: deal.listing.brand ?? null,
     reasons: deal.reasons || [],
     status: "new",
+    favourite: false,
     firstSeen: deal.firstSeen || new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };

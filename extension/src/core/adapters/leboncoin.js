@@ -19,6 +19,13 @@
  *
  * When it is blocked anyway, we say so and stop. No proxy rotation, no CAPTCHA
  * solving, no fingerprint spoofing - on purpose.
+ *
+ * There is a third transport, and it is the one that usually works when the first
+ * two do not: `tab` makes the request from a leboncoin tab the user already has
+ * open (see ../tab-transport.js). Same origin, same cookies, same user agent as
+ * the site's own client - not because we forged anything, but because it is
+ * literally a request made by the page. In auto mode the adapter uses it whenever
+ * such a tab exists, and says which transport answered in `result.transport`.
  */
 
 import { makeListing } from "../models.js";
@@ -194,6 +201,7 @@ export function parseAds(payload, { domain = DEFAULT_DOMAIN, marketplace = "lebo
         brand,
         size: attrOf(attrs, ATTR_SIZE),
         imageUrl: images.thumb_url || images.small_url || (Array.isArray(images.urls) ? images.urls[0] : null) || null,
+        description: typeof ad.body === "string" && ad.body.trim() ? ad.body : null,
         favourites: Number.isInteger(counters.favorites) ? counters.favorites : null,
         createdAt: parseDate(ad),
         sellerType: owner.type || null,
@@ -248,12 +256,19 @@ function searchAdsList(node, depth) {
   return null;
 }
 
-export function blockedAdvice(hasDatadomeCookie) {
+export function blockedAdvice(hasDatadomeCookie, { tabAvailable = false } = {}) {
+  if (tabAvailable) {
+    return (
+      "Even your own open leboncoin tab was refused, which means the block is on your network or your account rather than on the extension. " +
+      "Stop here and try again later. This extension does not solve CAPTCHAs, rotate proxies or hide who you are."
+    );
+  }
   return (
-    "Run it from a normal browser session and slow the interval down. " +
+    "Open leboncoin.fr in a normal tab (and browse a couple of pages), then scan again: with a leboncoin tab open this extension sends the search " +
+    "from that tab's own session, which is what DataDome expects to see. " +
     (hasDatadomeCookie
-      ? "A DataDome cookie is present, so this session has already been challenged; opening leboncoin.fr in a tab and browsing a couple of pages usually clears it."
-      : "Open leboncoin.fr in this browser once (and browse a couple of pages) so the extension shares a real session with it.") +
+      ? "A DataDome cookie is present, so this session has already been challenged once."
+      : "No DataDome cookie is present yet, so this browser has not completed a leboncoin visit.") +
     " This extension does not solve CAPTCHAs, rotate proxies or hide who you are."
   );
 }
@@ -274,6 +289,7 @@ export class LeboncoinAdapter {
     sleep,
     random,
     pacing,
+    tabTransport = null,
     minIntervalMs = LEBONCOIN_PACING.minIntervalMs,
     jitterMs = LEBONCOIN_PACING.jitterMs,
     maxRetries = 2,
@@ -285,6 +301,8 @@ export class LeboncoinAdapter {
     this.apiKey = apiKey;
     this.fetch = fetchImpl;
     this.cookies = cookies || (async () => null);
+    this.tabTransport = tabTransport;
+    this.lastTransport = null;
     this.maxRetries = maxRetries;
     this.log = logger;
     // A shared pacer means two watches on the same marketplace still leave a gap
@@ -306,32 +324,45 @@ export class LeboncoinAdapter {
     }
   }
 
+  /** Same request, run inside one of the user's own leboncoin tabs. */
+  async _fetchTab(url, init = {}) {
+    try {
+      return await this.tabTransport.fetchInTab(url, { credentials: "include", ...init }, { hosts: [this.domain] });
+    } catch (err) {
+      // A missing/injectable-failed tab must not end the chain: it is reported as
+      // a blocked transport so the next one can be tried.
+      throw new MarketplaceBlocked(
+        `${url} could not be fetched from your tab (${err.message || err}). ${blockedAdvice(Boolean(this.datadomeCookie), { tabAvailable: false })}`,
+      );
+    }
+  }
+
   async _noteCookies() {
     // Presence of this cookie tells us the session has already been challenged.
     this.datadomeCookie = await this.cookies(this._origin(), "datadome");
   }
 
-  _blocked(url, response, reason) {
+  _blocked(url, response, reason, { tabAvailable = false } = {}) {
     const detail =
       reason || (looksLikeChallenge(response.status, response.body, response.headers) ? "DataDome challenge" : `HTTP ${response.status}`);
     return new MarketplaceBlocked(
-      `${url} refused (${detail}). ${blockedAdvice(Boolean(this.datadomeCookie))}`,
+      `${url} refused (${detail}). ${blockedAdvice(Boolean(this.datadomeCookie), { tabAvailable })}`,
     );
   }
 
-  /** One guarded request with retries, shared by both transports. */
-  async _request(url, init, label) {
+  /** One guarded request with retries, shared by every transport. */
+  async _request(url, init, label, { viaTab = false } = {}) {
     let lastStatus = null;
     for (let attempt = 0; attempt <= this.maxRetries; attempt += 1) {
       await this.pacing.wait();
-      const response = await this._fetch(url, init);
+      const response = viaTab ? await this._fetchTab(url, init) : await this._fetch(url, init);
       this.pacing.mark();
       this.requestsMade += 1;
       lastStatus = response.status;
 
       if (response.status === 200) return response;
       if (looksLikeChallenge(response.status, response.body, response.headers)) {
-        throw this._blocked(label, response);
+        throw this._blocked(label, response, undefined, { tabAvailable: viaTab });
       }
       if (response.status === 401 || response.status === 403) {
         // refresh the session view once, then stop
@@ -339,7 +370,7 @@ export class LeboncoinAdapter {
           await this._noteCookies();
           continue;
         }
-        throw this._blocked(label, response);
+        throw this._blocked(label, response, undefined, { tabAvailable: viaTab });
       }
       if (response.status === 429) {
         const wait = retryAfterMs(response.headers) ?? this.pacing.backoffMs(attempt);
@@ -456,7 +487,7 @@ export class LeboncoinAdapter {
 
   // --- transports ----------------------------------------------------------
 
-  async _searchApi(query) {
+  async _searchApi(query, options = {}) {
     const body = this.buildBody(query);
     const response = await this._request(
       FINDER_URL,
@@ -466,6 +497,7 @@ export class LeboncoinAdapter {
         body: JSON.stringify(body),
       },
       FINDER_URL,
+      options,
     );
     let payload;
     try {
@@ -476,9 +508,9 @@ export class LeboncoinAdapter {
     return this._buildResult(payload, query);
   }
 
-  async _searchPage(query) {
+  async _searchPage(query, options = {}) {
     const url = this.searchUrl(query);
-    const response = await this._request(url, { headers: { Accept: "text/html" } }, url);
+    const response = await this._request(url, { headers: { Accept: "text/html" } }, url, options);
     const ads = findAdsInPage(response.body);
     if (!ads.length) {
       throw new MarketplaceError(
@@ -489,25 +521,62 @@ export class LeboncoinAdapter {
     return this._buildResult({ ads }, query);
   }
 
-  _transports() {
-    return this.transport === "api" || this.transport === "page" ? [this.transport] : ["api", "page"];
+  /** Is one of the user's own tabs open on this marketplace right now? */
+  async _tabReady() {
+    if (!this.tabTransport?.available) return false;
+    try {
+      return Boolean(await this.tabTransport.available([this.domain]));
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * The order in which requests are attempted.
+   *
+   * With a leboncoin tab open, the tab comes first: it is the one transport that
+   * sends the request identity DataDome expects, so leading with it avoids two
+   * pointless (and paced!) refusals. Without a tab, behaviour is what it always
+   * was: the JSON api, then the search page.
+   */
+  async _transportPlan() {
+    const configured = String(this.transport || "auto").toLowerCase();
+    const endpoints = configured === "api" || configured === "page" ? [configured] : ["api", "page"];
+    const tabReady = await this._tabReady();
+
+    if (configured === "tab") {
+      if (!tabReady) {
+        throw new MarketplaceBlocked(
+          `transport "tab" was requested but ${blockedAdvice(Boolean(this.datadomeCookie), { tabAvailable: false })}`,
+        );
+      }
+      return endpoints.map((endpoint) => ({ endpoint, viaTab: true }));
+    }
+
+    const plan = [];
+    if (tabReady) for (const endpoint of endpoints) plan.push({ endpoint, viaTab: true });
+    for (const endpoint of endpoints) plan.push({ endpoint, viaTab: false });
+    return plan;
   }
 
   async search(query) {
     await this._noteCookies();
     const failures = [];
-    const transports = this._transports();
-    for (let index = 0; index < transports.length; index += 1) {
-      const transport = transports[index];
+    const plan = await this._transportPlan();
+    for (const [index, step] of plan.entries()) {
+      const label = `${step.endpoint}${step.viaTab ? " (from your tab)" : ""}`;
       try {
-        const result = transport === "api" ? await this._searchApi(query) : await this._searchPage(query);
+        const result =
+          step.endpoint === "api" ? await this._searchApi(query, step) : await this._searchPage(query, step);
         result.items = this.postFilter(result.items, query);
+        result.transport = label;
+        this.lastTransport = label;
         return result;
       } catch (err) {
         if (err instanceof MarketplaceRateLimited) throw err;
         if (!(err instanceof MarketplaceBlocked)) throw err;
-        failures.push(`${transport}: ${err.message}`);
-        if (index === transports.length - 1) break;
+        failures.push(`${label}: ${err.message}`);
+        if (index === plan.length - 1) break;
       }
     }
     throw new MarketplaceBlocked(

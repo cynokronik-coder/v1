@@ -57,6 +57,10 @@ export function formToWatch(values = {}, defaults = {}) {
       mustNotMatch: parseList(values.mustNotMatch),
       sizes: parseList(values.sizes),
       conditions: parseList(values.conditions),
+      // Off only when the checkbox was explicitly unticked. New watches start
+      // ticked (see blankWatchForm): "does this listing even mention my product"
+      // is the question people expect a price tool to answer.
+      exactPhrase: values.exactPhrase !== false,
       minDiscount: parsePercent(values.minDiscount, { field: "minimum discount" }),
       maxRobustZ: parseOptionalNumber(values.maxRobustZ, { field: "max robust z" }),
       minSampleSize: Number(String(values.minSampleSize ?? "").trim() || WATCH_DEFAULTS.minSampleSize),
@@ -82,6 +86,7 @@ export function watchToForm(watch) {
     mustNotMatch: formatList(watch.mustNotMatch),
     sizes: formatList(watch.sizes),
     conditions: formatList(watch.conditions),
+    exactPhrase: watch.exactPhrase === true,
     minDiscount: String(Math.round((watch.minDiscount ?? WATCH_DEFAULTS.minDiscount) * 100)),
     maxRobustZ: watch.maxRobustZ === null || watch.maxRobustZ === undefined ? "" : String(watch.maxRobustZ),
     minSampleSize: String(watch.minSampleSize ?? WATCH_DEFAULTS.minSampleSize),
@@ -95,5 +100,8 @@ export function watchToForm(watch) {
 }
 
 export function blankWatchForm(marketplace = "vinted") {
-  return watchToForm({ ...WATCH_DEFAULTS, marketplace, name: "", searchText: "" });
+  // A watch you create in the dashboard insists on the exact phrase from the
+  // start; a watch imported from the Python tool keeps whatever it had (the model
+  // default is off, because that tool has no such field).
+  return watchToForm({ ...WATCH_DEFAULTS, marketplace, name: "", searchText: "", exactPhrase: true });
 }

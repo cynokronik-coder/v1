@@ -92,6 +92,8 @@ export class MockAdapter {
       condition: "très bon état",
       brand: searchText.split(/\s+/)[0],
       size: "M",
+      // A description, so the offline demo exercises the exact-phrase filter too.
+      description: `${searchText} - detailed description for listing ${index}`,
       imageUrl: null,
       favourites: index % 7,
     });

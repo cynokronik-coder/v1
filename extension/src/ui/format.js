@@ -6,12 +6,28 @@
  * so they are plain functions with tests.
  */
 
-export const MARKETPLACE_LABELS = {
+// Short names for chips and dropdowns. Kept here (not in the registry) because the
+// registry's labels are full sentences for the Sources page, and a 60-character chip
+// is not a chip.
+const SHORT_LABELS = {
   vinted: "Vinted",
   leboncoin: "leboncoin",
   ebay: "eBay",
+  backmarket: "Back Market",
+  fnac: "Fnac",
+  cdiscount: "Cdiscount",
+  easycash: "Easy Cash",
+  cashexpress: "Cash Express",
+  cashconverters: "Cash Converters",
+  momox: "momox",
+  facebook: "FB Marketplace",
   mock: "offline demo",
+  manual: "entered by hand",
+  "google-shopping": "Google Shopping",
 };
+
+/** Every registered source, so an id can never render as a raw slug. */
+export const MARKETPLACE_LABELS = { ...SHORT_LABELS };
 
 export function money(amount, currency = "EUR", { compact = false } = {}) {
   if (amount === null || amount === undefined || Number.isNaN(amount)) return "—";
@@ -26,7 +42,26 @@ export function percent(fraction, digits = 0) {
 }
 
 export function marketplaceLabel(marketplace) {
-  return MARKETPLACE_LABELS[marketplace] || marketplace;
+  return MARKETPLACE_LABELS[marketplace] || sourcesLabel(marketplace) || marketplace;
+}
+
+/** The registry's own label, for anything not in the short list above. */
+function sourcesLabel(marketplace) {
+  return (state?.sources || []).find((source) => source.id === marketplace)?.label || null;
+}
+
+// The dashboard sets this once per state refresh, so format.js stays DOM-free and
+// testable while still knowing the live registry.
+let state = null;
+export function useSourceLabels(dashboardState) {
+  state = dashboardState || null;
+}
+
+/** "Vinted, leboncoin and 3 more" - for the opportunity cards' buy side. */
+export function marketplaceList(ids = []) {
+  const names = ids.map((id) => marketplaceLabel(id)).filter(Boolean);
+  if (names.length <= 3) return names.join(", ");
+  return `${names.slice(0, 3).join(", ")} and ${names.length - 3} more`;
 }
 
 /** "3 min ago" / "2 h ago" / "yesterday" - for the last-scan line. */
@@ -76,10 +111,14 @@ export function visibleDeals(alerts, query = {}) {
     text = "",
     minDiscount = null,
     sort = "newest",
+    // The Starred view: every status, only the deals the user starred.
+    favourite = false,
   } = query;
   const needle = String(text || "").trim().toLowerCase();
   const filtered = alerts.filter((alert) => {
-    if (status !== "all" && alert.status !== status) return false;
+    if (favourite) {
+      if (!alert.favourite) return false;
+    } else if (status !== "all" && alert.status !== status) return false;
     if (watch && alert.watch !== watch) return false;
     if (marketplace && alert.marketplace !== marketplace) return false;
     if (minDiscount !== null && alert.discountPct < minDiscount) return false;
