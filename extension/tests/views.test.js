@@ -13,6 +13,7 @@ import {
   opportunityHeadline,
   pageCounts,
   priceSeries,
+  resaleReference,
   scoreLine,
   sparklinePath,
   verdictLabel,
@@ -132,4 +133,46 @@ test("starred deals come back newest-starred first, and the badges count what th
   });
   assert.equal(lastRunLine([]), "never run");
   assert.equal(lastRunLine([{ at: new Date().toISOString(), products: 12, requests: 40 }]).includes("12 product(s)"), true);
+});
+
+// --- the resale reference on an opportunity card ---------------------------
+
+test("a resale reference is always stated - measured, or honestly not", () => {
+  // The single-source case: the engine leaves `resaleReferences` empty, and the card
+  // used to show no reference at all because of it.
+  const single = resaleReference({ currency: "EUR", resaleSource: "backmarket", resalePrice: 310, resaleSample: 9, confidence: "high" });
+  assert.equal(single.measured, true);
+  assert.equal(single.value, "310.00 EUR — median on Back Market");
+  assert.match(single.detail, /9 resale listing\(s\) used/);
+
+  // A manual price is what gets used, so it is what gets shown.
+  const manual = resaleReference({ currency: "EUR", resaleSource: "manual", manualResalePrice: 275, resalePrice: 275, resaleSample: 0 });
+  assert.equal(manual.measured, true);
+  assert.match(manual.value, /275\.00 EUR — the price you typed in/);
+  assert.match(manual.detail, /overrides/);
+
+  // Several references: every one is listed, with its own sample size.
+  const many = resaleReference({
+    currency: "EUR",
+    resaleSpread: 0.1,
+    resaleReferences: [
+      { source: "ebay", median: 320, sample: 14 },
+      { source: "backmarket", median: 295, sample: 6 },
+    ],
+  });
+  assert.equal(many.measured, true);
+  assert.equal(many.value, "eBay 320.00 EUR · Back Market 295.00 EUR");
+  assert.match(many.detail, /median of eBay: 14 listing\(s\), Back Market: 6 listing\(s\)/);
+  assert.match(many.detail, /the lowest one wins/, "the consensus rule is stated, not implied");
+
+  // Nothing measured: said out loud, with the three ways to fix it.
+  const none = resaleReference({ currency: "EUR", resaleSource: "ebay", resalePrice: null, resaleSample: 0 });
+  assert.equal(none.measured, false);
+  assert.equal(none.value, "no resale price measured");
+  assert.match(none.detail, /nothing came back from eBay/);
+  assert.match(none.detail, /add an eBay keyset in API keys/);
+
+  // An empty object must not throw, because a half-written record is a real state.
+  assert.equal(resaleReference({}).measured, false);
+  assert.match(resaleReference({}).detail, /the resale side/);
 });

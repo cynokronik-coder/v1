@@ -45,7 +45,7 @@ async function searchSide({
 }) {
   const label = `${product.name} [${side}/${marketplace}]`;
   if (!sourceEnabled(marketplace, settings)) {
-    notes.push(`${label}: skipped - switched off in the Sources page`);
+    notes.push(`${label}: skipped - switched off in the Marketplaces page`);
     return { items: [], totalEntries: null, requests: 0, ok: false };
   }
   const acknowledged =

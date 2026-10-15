@@ -40,7 +40,7 @@ export function makeQuery(watch, { page = 1, perPage = DEFAULT_PER_PAGE, order =
 export function skipReason(watch, settings) {
   if (!watch.enabled) return "disabled";
   if (!sourceEnabled(watch.marketplace, settings)) {
-    return "switched off in the Sources page";
+    return "switched off in the Marketplaces page";
   }
   if (UNOFFICIAL_MARKETPLACES[watch.marketplace] && !watch.acknowledgeTerms && !settings?.acknowledgeAll) {
     return "not acknowledged: read the terms note and set acknowledgeTerms on this watch";

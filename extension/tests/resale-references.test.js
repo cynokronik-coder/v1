@@ -226,7 +226,7 @@ test("a Google Trends provider signal is blended into the demand score", async (
   assert.match(opportunity.trendReasons.join(" "), /Google Trends interest rising/);
 });
 
-test("a source switched off in the Sources page is skipped, in every run", async () => {
+test("a source switched off in the Marketplaces page is skipped, in every run", async () => {
   const built = [];
   const { notes } = await runOpportunityScan({
     catalog: [product],
@@ -238,7 +238,7 @@ test("a source switched off in the Sources page is skipped, in every run", async
     now: () => Date.parse("2026-02-01T12:00:00Z"),
   });
   assert.ok(!built.includes("momox"));
-  assert.ok(notes.some((note) => /switched off in the Sources page/.test(note)));
+  assert.ok(notes.some((note) => /switched off in the Marketplaces page/.test(note)));
 });
 
 test("per-source terms acknowledgement is enough, without ticking the global one", async () => {

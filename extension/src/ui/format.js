@@ -7,7 +7,7 @@
  */
 
 // Short names for chips and dropdowns. Kept here (not in the registry) because the
-// registry's labels are full sentences for the Sources page, and a 60-character chip
+// registry's labels are full sentences for the Marketplaces page, and a 60-character chip
 // is not a chip.
 const SHORT_LABELS = {
   vinted: "Vinted",

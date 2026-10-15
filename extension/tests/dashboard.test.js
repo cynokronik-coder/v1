@@ -521,8 +521,10 @@ test("the page navigation swaps the panels, and the badges count what they say",
   doc.querySelector('.pagenav-tab[data-page="history"]').click();
   assert.equal(doc.querySelector("#page-history").hidden, false);
   assert.equal(doc.querySelector("#page-deals").hidden, true);
+  assert.equal(text(doc, "#crumb"), "History", "the sticky header names the tool you are in");
   doc.querySelector('.pagenav-tab[data-page="settings"]').click();
   assert.equal(doc.querySelector("#page-settings").hidden, false);
+  assert.equal(text(doc, "#crumb"), "Settings");
 });
 
 test("the opportunities page shows the trade, the confidence and the reasons", async () => {
@@ -767,4 +769,214 @@ test("the settings page carries every provider key, so a key never needs to be p
   // And a provider key is a password field, never a plain text box.
   const apify = doc.querySelector('#settings-form [data-key="apifyToken"]');
   assert.equal(apify.type, "password");
+});
+
+// --- what the reference cards say, and what their buttons do ---------------
+
+test("a product priced against one resale source still states its reference, and its buttons lead somewhere", async () => {
+  const { doc } = await open();
+  doc.querySelector('[data-page="opportunities"]').click();
+  await settle();
+
+  const card = doc.querySelector("#opportunities .opp");
+  const reference = card.querySelector(".reference");
+  assert.equal(reference.classList.contains("is-none"), false, "a measured reference must not be marked missing");
+  // The engine only fills `resaleReferences` when several sources are compared, so
+  // the common single-source case is the one that used to render nothing at all.
+  assert.match(reference.querySelector(".reference-value").textContent, /310\.00 EUR — median on Back Market/);
+  assert.match(reference.querySelector(".reference-samples").textContent, /9 resale listing\(s\) used · high confidence/);
+
+  // This run stored no resaleUrl, so the button has to fall back to a real search
+  // rather than staying hidden (which is what it used to do).
+  const resale = card.querySelector("a.opp-resale");
+  assert.equal(resale.hidden, false);
+  assert.equal(resale.getAttribute("href"), "https://www.ebay.fr/sch/i.html?_nkw=iphone%2013%20256");
+  assert.match(resale.textContent, /Search the resale side/);
+  assert.equal(card.querySelector("a.opp-buy").getAttribute("href"), "https://example.invalid/iphone-13");
+});
+
+test("a product with no resale price says so, instead of showing an empty reference", async () => {
+  const { doc } = await open({
+    state: baseState({
+      opportunities: [opportunity({ resalePrice: null, resaleSample: 0, resaleUrl: null, buyUrl: null })],
+    }),
+  });
+  doc.querySelector('[data-page="opportunities"]').click();
+  await settle();
+
+  const card = doc.querySelector("#opportunities .opp");
+  assert.equal(card.querySelector(".reference").classList.contains("is-none"), true);
+  assert.match(card.querySelector(".reference-value").textContent, /no resale price measured/);
+  assert.match(card.querySelector(".reference-samples").textContent, /add an eBay keyset in API keys/);
+
+  // No stored buy URL, but vinted publishes a search URL: a working link, not a
+  // button that swallows the click.
+  assert.match(card.querySelector("a.opp-buy").getAttribute("href"), /vinted\.fr\/catalog\?search_text=/);
+  assert.match(card.querySelector("a.opp-resale").getAttribute("href"), /ebay\.fr\/sch\/i\.html/);
+});
+
+test("a card with nowhere to point hides the button rather than faking one", async () => {
+  const { doc } = await open({
+    state: baseState({ opportunities: [opportunity({ buyUrl: null, buyMarket: ["nowhere"], resaleUrl: null, resaleSource: "unknown-shop" })] }),
+  });
+  doc.querySelector('[data-page="opportunities"]').click();
+  await settle();
+  const card = doc.querySelector("#opportunities .opp");
+  assert.equal(card.querySelector("a.opp-buy").hidden, true);
+  assert.equal(card.querySelector("a.opp-resale").hidden, false, "eBay is always a usable fallback resale search");
+});
+
+test("Track as a watch turns a scored product into a real watch, and lands you on Deals", async () => {
+  const onMessage = (message, worker) => {
+    // The real worker stores what it is given and re-reports it; this fake stores it
+    // too, so the assertion below is about the message and not about the echo.
+    if (message.type === "setWatches") worker.state = { ...worker.state, watches: message.watches };
+  };
+  const { doc, sent } = await open({ onMessage });
+  doc.querySelector('[data-page="opportunities"]').click();
+  await settle();
+
+  const card = doc.querySelector("#opportunities .opp");
+  assert.equal(card.querySelector(".opp-watch").textContent, "Track as a watch");
+  card.querySelector(".opp-watch").click();
+  await settle();
+  await settle();
+
+  const saved = sent.filter((m) => m.type === "setWatches").at(-1);
+  assert.ok(saved, "the button must tell the worker about the new watch");
+  const added = saved.watches.find((watch) => watch.name === "iPhone 13 (128 / 256 Go) (opp)");
+  assert.ok(added, `expected the product to become a watch, got ${saved.watches.map((w) => w.name).join(", ")}`);
+  assert.equal(added.searchText, "iphone 13 256", "the catalogue keyword becomes the search text");
+  assert.equal(added.marketplace, "vinted", "it watches the buy side");
+  assert.equal(added.exactPhrase, true);
+  assert.ok(added.plausibleMinPrice > 0 && added.plausibleMaxPrice > added.plausibleMinPrice, "with a price band, not 0..0");
+  assert.ok(saved.watches.length > 1, "and the watches already there are kept");
+
+  assert.equal(doc.querySelector("#page-deals").hidden, false, "you end up where the watch will report");
+  assert.match(text(doc, "#banner"), /added "iPhone 13 \(128 \/ 256 Go\) \(opp\)" as a watch/);
+
+  // Asking twice must not create a duplicate.
+  doc.querySelector('[data-page="opportunities"]').click();
+  await settle();
+  const before = sent.filter((m) => m.type === "setWatches").length;
+  doc.querySelector("#opportunities .opp .opp-watch").click();
+  await settle();
+  assert.equal(sent.filter((m) => m.type === "setWatches").length, before, "a watch that already exists is not sent again");
+  assert.match(text(doc, "#banner"), /is already a watch/);
+});
+
+test("How this is measured opens the explanation rather than doing nothing", async () => {
+  const { doc } = await open();
+  doc.querySelector('[data-page="opportunities"]').click();
+  await settle();
+  const panel = doc.querySelector("#opportunity-explanation");
+  panel.open = false;
+  doc.querySelector("#opportunities-help").click();
+  assert.equal(panel.open, true);
+  assert.match(panel.querySelector("summary").textContent, /What this page actually measures/);
+});
+
+// --- the API keys page ------------------------------------------------------
+
+test("the API keys page explains, step by step, how to wire up each provider", async () => {
+  const { doc } = await open();
+  doc.querySelector('[data-page="providers"]').click();
+  await settle();
+  assert.equal(doc.querySelector("#page-providers").hidden, false);
+
+  const cards = [...doc.querySelectorAll("#api-setup .setup-card")];
+  assert.deepEqual(
+    cards.map((card) => card.querySelector(".setup-label").textContent),
+    ["eBay developer keyset", "Apify"],
+    "eBay first (the key the extension expects), then the providers from the registry",
+  );
+
+  const apify = cards[1];
+  assert.match(apify.querySelector(".setup-lead").textContent, /Covers: vinted, leboncoin/);
+  assert.ok(apify.querySelectorAll(".setup-steps li").length >= 5, "the steps should cover signup, paste and the switch");
+  const steps = apify.querySelector(".setup-steps").textContent;
+  assert.match(steps, /API & Integrations/, "where in Apify's dashboard the token lives");
+  assert.match(steps, /Apify API token/, "which settings field takes it");
+  assert.match(steps, /fall back to an Apify actor/, "and which switch actually spends the key");
+  assert.match(steps, /Test every enabled source/, "and how to prove it works");
+  assert.match(apify.querySelector(".setup-keys").textContent, /apifyToken → Settings → "Apify API token"/);
+  assert.equal(apify.querySelector(".provider-signup").href, "https://console.apify.com/sign-up");
+  assert.match(apify.querySelector(".setup-legal").textContent, /sent only to Apify/);
+
+  // The eBay card is the one that must name its own keys and say what is missing.
+  const ebay = cards[0];
+  assert.match(ebay.querySelector(".setup-keys").textContent, /ebayClientId → Settings → "eBay Client ID"/);
+  assert.match(ebay.querySelector(".setup-keys").textContent, /missing right now: ebayClientId, ebayClientSecret/);
+  assert.equal(ebay.querySelector(".provider-docs").href, "https://developer.ebay.com/signin");
+  assert.match(ebay.querySelector(".setup-status").textContent, /needs a key/);
+
+  // "Where do I paste it?" goes straight to the form that has the field.
+  apify.querySelector(".setup-settings").click();
+  await settle();
+  assert.equal(doc.querySelector("#page-settings").hidden, false);
+  assert.ok(doc.querySelector('#settings-form [data-key="apifyToken"]'));
+});
+
+// --- the price check tool ---------------------------------------------------
+
+test("the price check asks the worker for one keyword's median and shows it", async () => {
+  const { doc, sent } = await open({
+    onMessage(message) {
+      if (message.type === "priceCheck") {
+        return {
+          ok: true,
+          marketplace: "vinted",
+          label: "Vinted",
+          keyword: "iphone 13 128",
+          currency: "EUR",
+          stats: { median: 240, q1: 200, q3: 290, mad: 35, usedSize: 40, sampleSize: 44 },
+          checked: 44,
+          totalEntries: 900,
+          cheapest: [{ title: "iphone 13 128 - cheap", price: 180, currency: "EUR", url: "https://example.invalid/cheap" }],
+          durationMs: 812,
+          via: "your open tab",
+        };
+      }
+    },
+  });
+  doc.querySelector('[data-page="price"]').click();
+  await settle();
+  assert.equal(doc.querySelector("#page-price").hidden, false);
+
+  doc.querySelector("#price-keyword").value = "iphone 13 128";
+  doc.querySelector("#price-run").click();
+  await settle();
+
+  const message = sent.filter((m) => m.type === "priceCheck").at(-1);
+  assert.equal(message.marketplace, "vinted", "the marketplace dropdown is populated from the registry");
+  assert.equal(message.keyword, "iphone 13 128");
+  assert.equal(message.minPrice, "");
+
+  const result = doc.querySelector("#price-result");
+  assert.equal(result.hidden, false);
+  assert.match(result.textContent, /240\.00 EUR/, "the median is the headline number");
+  assert.match(result.textContent, /200\.00 EUR - 290\.00 EUR/, "and the middle half of the market is spelled out");
+  assert.match(result.textContent, /44 listing\(s\) with a readable price/);
+  assert.equal(result.querySelector("a.t").getAttribute("href"), "https://example.invalid/cheap");
+});
+
+test("a price check with no keyword, or one the worker refuses, explains itself", async () => {
+  const { doc, sent } = await open({
+    onMessage(message) {
+      if (message.type === "priceCheck") throw new Error("type something to search for");
+    },
+  });
+  doc.querySelector('[data-page="price"]').click();
+  await settle();
+
+  doc.querySelector("#price-run").click();
+  await settle();
+  assert.equal(sent.some((m) => m.type === "priceCheck"), false, "an empty box is not sent to the worker");
+  assert.match(text(doc, "#price-error"), /Type what you want priced/);
+
+  doc.querySelector("#price-keyword").value = "iphone";
+  doc.querySelector("#price-run").click();
+  await settle();
+  assert.match(text(doc, "#price-error"), /type something to search for/);
+  assert.equal(doc.querySelector("#price-result").hidden, true);
 });

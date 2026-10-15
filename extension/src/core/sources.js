@@ -242,7 +242,7 @@ export const SOURCES = [
       "reads the public search page from your own browser session.",
     advice:
       "Fnac serves 403 to plain server requests. Open fnac.com in a tab, then run again - or " +
-      "switch this source to 'open-tab' in the Sources page and read the page you are on.",
+      "switch this source to 'open-tab' in the Marketplaces page and read the page you are on.",
   },
   {
     id: "cdiscount",
@@ -294,7 +294,7 @@ export const SOURCES = [
       "No documented API. Personal, low-volume use of pages your own browser loads.",
     advice:
       "Open an Easy Cash search (or category) page in a tab, leave it open, then run. Paste a " +
-      "working search URL template in the Sources page to switch this to automatic mode.",
+      "working search URL template in the Marketplaces page to switch this to automatic mode.",
   },
   {
     id: "cashexpress",
@@ -455,7 +455,7 @@ export function assertKnownSource(id, where = "source") {
 /**
  * One source's user settings: `settings.sources[<id>] = { enabled, mode, urlTemplate,
  * acknowledgeTerms }`. Everything about a source that the user can change lives in
- * that one object, so the Sources page is a loop over the registry rather than a
+ * that one object, so the Marketplaces page is a loop over the registry rather than a
  * pile of bespoke fields.
  */
 export function sourceConfig(id, settings = {}) {
@@ -571,7 +571,7 @@ export function describeSource(id, { settings = {}, tabOpen = null, acknowledgeA
   return { id: source.id, label: source.label, status, detail, source, mode, missing };
 }
 
-/** Grouped for the Sources page, so the UI never hard-codes this list. */
+/** Grouped for the Marketplaces page, so the UI never hard-codes this list. */
 export function sourcesByKind() {
   const groups = new Map();
   for (const source of SOURCES) {

@@ -38,6 +38,7 @@ import {
   opportunityHeadline,
   pageCounts,
   priceSeries,
+  resaleReference,
   scoreLine,
   sparklinePath,
   verdictLabel,
@@ -157,14 +158,41 @@ function toast(message, kind = "") {
   banner.hidden = !message;
 }
 
+/**
+ * Show one tool, hide the rest.
+ *
+ * The list of pages comes from the navigation itself, so a tool is added by adding a
+ * nav button and a `<main>` - there is no second list to forget to update. (There
+ * used to be one here, and it is exactly how the catalogue became unreachable: it
+ * lived inside the Opportunities page, hidden behind a page nobody could get to.)
+ */
 function showPage(next) {
-  page = next;
-  for (const node of document.querySelectorAll(".pagenav-tab")) {
-    node.classList.toggle("is-active", node.dataset.page === next);
+  const tabs = [...document.querySelectorAll(".pagenav-tab")];
+  const wanted = tabs.some((tab) => tab.dataset.page === next) ? next : "deals";
+  page = wanted;
+  for (const tab of tabs) tab.classList.toggle("is-active", tab.dataset.page === wanted);
+  for (const main of document.querySelectorAll("main[id^='page-']")) {
+    main.hidden = main.id !== `page-${wanted}`;
   }
-  for (const id of ["page-deals", "page-opportunities", "page-history", "page-sources", "page-settings"]) {
-    $(id).hidden = id !== `page-${next}`;
+  // The sticky header names the tool you are in, so the rail does not have to be
+  // read again every time a long page scrolls. The label comes from the nav button
+  // itself (minus its count badge), so a renamed tool is renamed in one place.
+  const active = tabs.find((tab) => tab.dataset.page === wanted);
+  const crumb = $("crumb");
+  if (active && crumb) {
+    const label = active.cloneNode(true);
+    label.querySelector(".pagenav-badge")?.remove();
+    label.querySelector(".ico")?.remove();
+    crumb.textContent = label.textContent.trim();
   }
+}
+
+/** The search URL the registry publishes for a marketplace, keyword filled in. */
+function sourceSearchUrl(marketplace, keyword) {
+  const source = (state?.sources || []).find((entry) => entry.id === marketplace);
+  const hint = source?.searchHint || "";
+  if (!hint.includes("{query}") || !keyword) return null;
+  return hint.replace("{query}", encodeURIComponent(keyword));
 }
 
 async function refresh() {
@@ -194,6 +222,8 @@ function render() {
   renderHistory();
   renderSources();
   renderProviders();
+  renderApiSetup();
+  renderPriceMarkets();
   renderSettings();
   renderBadges();
 }
@@ -591,25 +621,41 @@ function opportunityCard(item) {
   node.querySelector(".chip-confidence").textContent = `${item.confidence} confidence`;
   node.querySelector(".opp-name").textContent = item.name;
   node.querySelector(".opp-headline").textContent = opportunityHeadline(item);
-  const references = (item.resaleReferences || []).length
-    ? item.resaleReferences.map((entry) => `${marketplaceLabel(entry.source)} ${money(entry.median, item.currency)}`).join(" · ")
-    : `${marketplaceLabel(item.resaleSource)}`;
+
+  // The reference is always stated, measured or not: "no resale price measured" is a
+  // fact about the run, and leaving it out made the card look like the feature was
+  // missing rather than like the sample was.
+  const reference = resaleReference(item);
+  const referenceBox = node.querySelector(".reference");
+  referenceBox.classList.toggle("is-none", !reference.measured);
+  node.querySelector(".reference-value").textContent = reference.value;
+  node.querySelector(".reference-samples").textContent = reference.detail;
+
   node.querySelector(".opp-meta").textContent =
-    `${scoreLine(item)} · buy side: ${marketplaceList(item.buyMarket || [])} · resale: ${references} · keyword "${item.keyword}"`;
+    `${scoreLine(item)} · buy side: ${marketplaceList(item.buyMarket || [])} · keyword "${item.keyword}"`;
   node.querySelector(".opp-confidence").textContent = confidenceLine(item);
 
   const reasons = node.querySelector(".opp-reasons");
   for (const reason of item.reasons || []) reasons.append(el("li", { text: reason }));
 
+  // Both actions always lead somewhere. A measured URL is used when the run stored
+  // one; otherwise the keyword becomes a search on that marketplace, which is what
+  // the button promised to do in the first place.
   const buy = node.querySelector(".opp-buy");
-  if (item.buyUrl) buy.href = item.buyUrl;
-  else {
+  const buyHref = item.buyUrl || sourceSearchUrl((item.buyMarket || [])[0], item.keyword);
+  if (buyHref) {
+    buy.href = buyHref;
+    buy.textContent = item.buyUrl ? "Open a buy listing" : "Search the buy side";
+  } else {
     buy.hidden = true;
   }
   const resale = node.querySelector(".opp-resale");
-  if (item.resaleUrl) {
-    resale.hidden = false;
-    resale.href = item.resaleUrl;
+  const resaleHref = item.resaleUrl || sourceSearchUrl(item.resaleSource, item.keyword) || sourceSearchUrl("ebay", item.keyword);
+  if (resaleHref) {
+    resale.href = resaleHref;
+    resale.textContent = item.resaleUrl ? "Resale reference" : "Search the resale side";
+  } else {
+    resale.hidden = true;
   }
   node.querySelector(".opp-watch").addEventListener("click", () => trackAsWatch(item));
   return node;
@@ -1163,6 +1209,333 @@ function renderProviders() {
   }
 }
 
+// --- API keys: how to actually wire one up --------------------------------
+
+/**
+ * The instructions a key page is useless without.
+ *
+ * The explanations of *what* each provider does live in core/providers.js (the
+ * registry, so they cannot drift from the code that calls them). What the registry
+ * cannot know is the click-path in each vendor's dashboard and which switch in this
+ * extension spends the key - so that part is here, and every step is plain text with
+ * `code` tokens for values the user has to type.
+ */
+const PROVIDER_SETUP = {
+  apify: {
+    steps: [
+      ["Create an account in the Apify Console - the free plan includes a monthly usage credit."],
+      ["In the console, open Settings → API & Integrations and copy the personal API token. It starts with ", { code: "apify_api_" }, "."],
+      ["Paste it into Settings under ", { bold: "Apify API token" }, ", then press " , { bold: "Save settings" }, "."],
+      [
+        "In Settings, also tick ",
+        { bold: "fall back to an Apify actor when a marketplace has no open tab and no search URL" },
+        " - without that switch the token is never spent.",
+      ],
+      [
+        "Open Marketplaces, find the site you want (Vinted, leboncoin, Easy Cash, momox...), and paste the actor id from the Apify store into that row's ",
+        { code: "Apify actor" },
+        " box, for example ",
+        { code: "user~actor-name" },
+        ".",
+      ],
+      ["Tick that row's terms box and press Test this source. Using an actor is not permission from the marketplace, so prefer actors you have a licence for."],
+    ],
+  },
+  serpapi: {
+    steps: [
+      ["Create an account at serpapi.com: 250 searches a month are free, paid plans after that."],
+      ["Copy the API key from your SerpApi dashboard."],
+      ["Paste it into Settings under ", { bold: "SerpApi key" }, ", then press ", { bold: "Save settings" }, "."],
+      [
+        "The key alone changes nothing: now tick ",
+        { bold: "use Google Shopping as an extra resale reference" },
+        " and/or ",
+        { bold: "use Google Trends for the demand signal" },
+        ". Each one spends a search per product, which is why both start off.",
+      ],
+    ],
+  },
+  brightdata: {
+    steps: [
+      ["Create an account at Bright Data."],
+      ["Copy your API token from the dashboard."],
+      ["Create a Web Unlocker zone and note its name - the zone is what actually fetches a page."],
+      [
+        "Paste the token into ",
+        { bold: "Bright Data API token" },
+        " and the zone name into ",
+        { bold: "Bright Data unlocker zone" },
+        ", then Save settings. Both are needed: with only the token, requests fail with no zone configured.",
+      ],
+      ["On Marketplaces, leave that site's 'how to reach it' on auto (recommended). The unlocker is tried when your own network is refused."],
+    ],
+  },
+  keepa: {
+    steps: [
+      ["Create a Keepa account, then subscribe to the API - it bills in token buckets, with a small free allowance for testing."],
+      ["Copy the API key from the Keepa API page."],
+      ["Paste it into Settings under ", { bold: "Keepa API key" }, ", then press ", { bold: "Save settings" }, "."],
+      ["Keepa covers Amazon marketplaces only: it is a price-history reference, not somewhere to buy. No key, no data."],
+    ],
+  },
+};
+
+const LAST_STEP = [
+  "Prove it works: press ",
+  { bold: "Test every enabled source" },
+  " on the Marketplaces page. Each source reports what actually happened, in its own words.",
+];
+
+/**
+ * Which setting each key of a credential belongs in, and what is still missing.
+ *
+ * The keys come from the registry when it describes them; when it only lists what is
+ * missing (a keyset the user has not filled in), the same rows are derived from the
+ * Settings form - so the card always names the exact field to paste into, which is
+ * the whole point of the page.
+ */
+function credentialRows({ keys = [], missing = [] } = {}) {
+  const list = el("ul", { class: "setup-keys" });
+  const described = keys.length ? keys.map((entry) => ({ key: entry.key, note: entry.note })) : missing.map((key) => ({ key, note: "" }));
+  for (const entry of described) {
+    list.append(
+      el("li", {}, [
+        el("code", { text: entry.key }),
+        document.createTextNode(` → Settings → "${settingsFieldLabel(entry.key)}"${entry.note ? ` (${entry.note})` : ""}`),
+      ]),
+    );
+  }
+  if (missing.length) list.append(el("li", { text: `missing right now: ${missing.join(", ")}` }));
+  return list;
+}
+
+/** The Settings label for a settings key, so a step can name the exact field. */
+function settingsFieldLabel(key) {
+  for (const group of SETTINGS_GROUPS) {
+    const spec = group.fields.find((field) => field.key === key);
+    if (spec) return spec.label;
+  }
+  return key;
+}
+
+/** A step is a list of strings and tokens, rendered without touching innerHTML. */
+function stepParts(step) {
+  return step.map((part) => {
+    if (typeof part === "string") return document.createTextNode(part);
+    if (part.code) return el("code", { text: part.code });
+    if (part.bold) return el("strong", { text: part.bold });
+    return document.createTextNode(String(part));
+  });
+}
+
+function setupSteps(steps) {
+  const list = el("ol", { class: "setup-steps" });
+  for (const step of [...steps, LAST_STEP]) list.append(el("li", {}, stepParts(step)));
+  return list;
+}
+
+/**
+ * The API-keys page: one card per provider, built from the live registry so a
+ * provider added to core/providers.js appears here (with its real key names and
+ * real docs link) instead of only existing in the code.
+ */
+function renderApiSetup() {
+  const box = $("api-setup");
+  if (!box) return;
+  box.replaceChildren();
+
+  // eBay first: it is the only key the extension actively expects, because it is a
+  // documented API and the preferred resale reference.
+  const ebay = (state.sources || []).find((source) => source.id === "ebay");
+  if (ebay?.credentials) {
+    const card = $("setup-template").content.firstElementChild.cloneNode(true);
+    card.classList.toggle("is-ready", ebay.credentialReady !== false);
+    card.querySelector(".setup-label").textContent = ebay.credentials.label || "eBay developer keyset";
+    const status = card.querySelector(".setup-status");
+    status.textContent = ebay.credentialReady === false ? "needs a key" : "key saved";
+    status.classList.add(ebay.credentialReady === false ? "is-warn" : "is-ok");
+    card.querySelector(".setup-lead").textContent =
+      "The terms-compliant path, and the resale reference that decides most verdicts. " +
+      "A free developer account is enough: no seller account, no listing fees, no approval to read public listings.";
+    card.querySelector(".setup-steps").replaceWith(
+      setupSteps([
+        ["Sign in to the eBay developer programme with any eBay account (the free membership is enough)."],
+        ["Create an application in the developer portal: that produces a keyset with an App ID and a Cert ID."],
+        [
+          "Paste the App ID into Settings under ",
+          { bold: "eBay Client ID" },
+          " and the Cert ID into ",
+          { bold: "eBay Client Secret" },
+          ", then press Save settings.",
+        ],
+        [
+          "Set the marketplace to match your country with ",
+          { code: "EBAY_FR" },
+          ", ",
+          { code: "EBAY_DE" },
+          ", ",
+          { code: "EBAY_GB" },
+          "... (the default is ",
+          { code: "EBAY_FR" },
+          "), then Save settings.",
+        ],
+        ["Tick 'terms acknowledged' where asked. Keys are stored locally and sent only to eBay."],
+      ]),
+    );
+    card.querySelector(".setup-keys").replaceWith(credentialRows(ebay.credentials));
+    const docs = card.querySelector(".provider-docs");
+    if (ebay.credentials.docsUrl) docs.href = ebay.credentials.docsUrl;
+    else docs.hidden = true;
+    card.querySelector(".provider-signup").href = ebay.credentials.docsUrl || "https://developer.ebay.com/";
+    card.querySelector(".provider-signup").textContent = "Open the developer portal";
+    card.querySelector(".setup-settings").addEventListener("click", () => showPage("settings"));
+    card.querySelector(".setup-legal").textContent =
+      "This is a personal keyset, not a partnership: eBay intends production use beyond development for approved " +
+      "partners. It returns asking prices - sold-price history (Marketplace Insights) is invite-only and is not used here.";
+    box.append(card);
+  }
+
+  for (const provider of state.providers || []) {
+    const spec = PROVIDER_SETUP[provider.id];
+    const card = $("setup-template").content.firstElementChild.cloneNode(true);
+    card.classList.toggle("is-ready", Boolean(provider.configured));
+    card.querySelector(".setup-label").textContent = provider.label;
+    const status = card.querySelector(".setup-status");
+    status.textContent = provider.configured ? "key saved" : "optional — no key yet";
+    status.classList.add(provider.configured ? "is-ok" : "is-warn");
+    card.querySelector(".setup-lead").textContent = `${provider.what} Free tier: ${provider.freeTier}. Covers: ${provider.covers.join(", ")}.`;
+    card.querySelector(".setup-steps").replaceWith(setupSteps(spec?.steps || []));
+    card.querySelector(".setup-keys").replaceWith(credentialRows({ keys: provider.keys }));
+    for (const [selector, url] of [
+      [".provider-signup", provider.signupUrl],
+      [".provider-docs", provider.docsUrl],
+    ]) {
+      const link = card.querySelector(selector);
+      if (url) link.href = url;
+      else link.hidden = true;
+    }
+    card.querySelector(".setup-settings").addEventListener("click", () => showPage("settings"));
+    card.querySelector(".setup-legal").textContent = `${provider.legal} The key is stored in this browser profile and is sent only to ${provider.label}.`;
+    box.append(card);
+  }
+
+  if (!box.children.length) box.append(el("p", { class: "hint", text: "The worker did not report any providers." }));
+}
+
+// --- price check -----------------------------------------------------------
+
+function renderPriceMarkets() {
+  const select = $("price-market");
+  if (!select) return;
+  const current = select.value;
+  const sources = (state.sources || []).filter((source) => source.enabled);
+  select.replaceChildren();
+  for (const source of sources) {
+    const suffix = source.credentialReady === false ? " (needs a key)" : source.mode === "open-tab" ? " (reads your tab)" : "";
+    select.append(el("option", { value: source.id, text: `${source.label}${suffix}` }));
+  }
+  const preferred = ["vinted", "leboncoin", "ebay", "backmarket"];
+  select.value = sources.some((source) => source.id === current)
+    ? current
+    : preferred.find((id) => sources.some((source) => source.id === id)) || sources[0]?.id || "";
+}
+
+async function doPriceCheck() {
+  const button = $("price-run");
+  const error = $("price-error");
+  const keyword = $("price-keyword").value.trim();
+  error.hidden = true;
+  error.textContent = "";
+  if (!keyword) {
+    error.hidden = false;
+    error.textContent = "Type what you want priced - a model name works better than a category.";
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "asking...";
+  try {
+    const result = await send({
+      type: "priceCheck",
+      marketplace: $("price-market").value,
+      keyword,
+      minPrice: $("price-min").value,
+      maxPrice: $("price-max").value,
+    });
+    renderPriceResult(result);
+  } catch (err) {
+    $("price-result").hidden = true;
+    error.hidden = false;
+    error.textContent = String(err.message || err).replace(/^Error: /, "");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Get the median";
+  }
+}
+
+function renderPriceResult(result) {
+  const box = $("price-result");
+  if (!box) return;
+  box.hidden = false;
+  box.replaceChildren();
+  if (!result?.ok) {
+    box.append(el("h2", { text: "No median this time" }));
+    box.append(el("p", { class: "hint", text: result?.detail || "the check did not answer" }));
+    if (result?.advice) box.append(el("p", { class: "hint", text: result.advice }));
+    return;
+  }
+  const stats = result.stats;
+  box.append(el("h2", { text: `Median price · ${result.label} · "${result.keyword}"` }));
+  box.append(
+    el("p", {
+      class: "hint",
+      text:
+        `${result.checked} listing(s) with a readable price in ${result.durationMs} ms` +
+        (result.via ? ` · via ${result.via}` : "") +
+        (result.totalEntries ? ` · about ${result.totalEntries} listings match on the site` : ""),
+    }),
+  );
+  const stat = (label, value, primary = false) =>
+    el("div", { class: "stat" }, [
+      el("div", { class: `stat-value${primary ? " is-primary" : ""}`, text: value }),
+      el("div", { class: "stat-label", text: label }),
+    ]);
+  box.append(
+    el("div", { class: "price-numbers" }, [
+      stat("median asking price", money(stats.median, result.currency), true),
+      stat("middle half of the market", `${money(stats.q1, result.currency)} - ${money(stats.q3, result.currency)}`),
+      stat("spread (MAD)", money(stats.mad, result.currency)),
+      stat("listings kept", `${stats.usedSize} of ${stats.sampleSize}`),
+    ]),
+  );
+  if (stats.sampleSize < 8) {
+    box.append(
+      el("p", {
+        class: "hint",
+        text: `Only ${stats.sampleSize} usable listing(s): read this as an anecdote, not a market. Widen the price band or use a plainer keyword.`,
+      }),
+    );
+  }
+  if ((result.cheapest || []).length) {
+    box.append(el("h2", { text: "Cheapest listings seen" }));
+    const list = el("ul", { class: "price-list" });
+    for (const listing of result.cheapest) {
+      list.append(
+        el("li", {}, [
+          el("span", { class: "p", text: money(listing.price, listing.currency || result.currency) }),
+          el("a", {
+            class: "t",
+            href: listing.url,
+            target: "_blank",
+            rel: "noreferrer noopener",
+            text: listing.title || "(untitled)",
+          }),
+        ]),
+      );
+    }
+    box.append(list);
+  }
+}
+
 // --- actions ---------------------------------------------------------------
 
 async function doScan() {
@@ -1259,10 +1632,19 @@ function wire() {
   $("clear-keep-starred").addEventListener("click", () => clearDeals(true));
 
   $("scan-opportunities").addEventListener("click", doOpportunityScan);
+  // "How this is measured" opens the explanation and puts the caret on its summary,
+  // which also brings it into view in a real browser. It used to flip the `hidden`
+  // attribute on a `<section>` whose class set no display rule, so it appeared to do
+  // nothing at all.
   $("opportunities-help").addEventListener("click", () => {
     const panel = $("opportunity-explanation");
-    panel.hidden = !panel.hidden;
+    if (!panel) return;
+    panel.open = true;
+    panel.querySelector("summary")?.focus();
   });
+  $("price-run").addEventListener("click", doPriceCheck);
+  $("go-to-keys").addEventListener("click", () => showPage("providers"));
+  $("go-to-settings-2").addEventListener("click", () => showPage("settings"));
   $("add-catalog").addEventListener("click", () => {
     const node = catalogRow({ enabled: true, resaleSource: "ebay", plausibleMinPrice: 20, plausibleMaxPrice: 500 });
     $("catalog").append(node);

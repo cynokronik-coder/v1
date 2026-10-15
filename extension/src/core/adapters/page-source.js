@@ -166,7 +166,7 @@ export function createPageAdapter(source, options = {}) {
           throw new MarketplaceError(
             `${source.label} answered HTTP ${response.status} for ${this.lastUrl || "the search page"}: ` +
               "the search URL template in core/sources.js has probably gone stale. Open the site, run the " +
-              "search yourself, and either paste the working URL into the Sources page or switch this source " +
+              "search yourself, and either paste the working URL into the Marketplaces page or switch this source " +
               "to 'reads your tab'.",
           );
         }
