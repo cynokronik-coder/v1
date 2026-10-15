@@ -567,7 +567,7 @@ test("a page-based marketplace that serves no data is an error on that watch, no
   assert.match(result.reports[0].notes.join(" "), /no product data could be read/);
 });
 
-test("the Sources page's switches and per-source test reach the real worker", async () => {
+test("the Marketplaces page's switches and per-source test reach the real worker", async () => {
   const harness = await setup({
     fetchImpl: stubFetch([["www.easycash.fr", { body: JSONLD_PAGE }]]),
   });
@@ -616,6 +616,63 @@ test("the Sources page's switches and per-source test reach the real worker", as
   });
   const afterOff = harness.fetchImpl.calls.length;
   const scan = await harness.controller.runScan({ force: true });
-  assert.match(scan.reports[0].notes.join(" "), /switched off in the Sources page/);
+  assert.match(scan.reports[0].notes.join(" "), /switched off in the Marketplaces page/);
   assert.equal(harness.fetchImpl.calls.length, afterOff, "a switched-off source makes no requests");
+});
+
+// --- the price check ("what does this actually cost?") ----------------------
+
+test("a price check prices one keyword without creating a watch or caching anything", async () => {
+  const harness = await setup();
+  const result = await harness.controller.handleMessage({ type: "priceCheck", marketplace: "mock", keyword: "pixel 8" });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.label, "Offline demo");
+  assert.equal(result.keyword, "pixel 8");
+  assert.equal(result.currency, "EUR");
+  assert.ok(result.stats.median > 0, "a median, not a blank");
+  assert.ok(result.stats.sampleSize >= 8, `expected a usable sample, got ${result.stats.sampleSize}`);
+  assert.equal(result.checked, result.stats.sampleSize);
+  assert.ok(result.cheapest.length > 0, "and the cheapest listings it saw");
+  assert.ok(result.cheapest[0].url, "each with a link back to the listing");
+  assert.ok(result.cheapest[0].price <= result.cheapest[result.cheapest.length - 1].price, "cheapest first");
+
+  // A check is a question, not a scan: nothing may be left behind for a later run.
+  assert.equal(harness.controller.store.watches.length, 0);
+  assert.equal(Object.keys(harness.controller.store.data.alerts || {}).length, 0);
+  assert.deepEqual(harness.controller.store.data.baselines, {});
+
+  // The price band reaches the query, which is the point of the two inputs.
+  const bounded = await harness.controller.handleMessage({
+    type: "priceCheck",
+    marketplace: "mock",
+    keyword: "pixel 8",
+    minPrice: "150",
+    maxPrice: "250",
+  });
+  assert.equal(bounded.ok, true);
+  assert.ok(bounded.stats.median >= 150 && bounded.stats.median <= 250);
+});
+
+test("a price check refuses the impossible in words, not with a stack trace", async () => {
+  const harness = await setup();
+  await assert.rejects(
+    () => harness.controller.handleMessage({ type: "priceCheck", marketplace: "nope", keyword: "iphone" }),
+    /unknown marketplace 'nope'/,
+  );
+  await assert.rejects(
+    () => harness.controller.handleMessage({ type: "priceCheck", marketplace: "mock", keyword: "   " }),
+    /type something to search for/,
+  );
+  // A credentialed marketplace with no keys must name the keys it wants.
+  await assert.rejects(
+    () => harness.controller.handleMessage({ type: "priceCheck", marketplace: "ebay", keyword: "iphone" }),
+    /needs credentials first: ebayClientId, ebayClientSecret/,
+  );
+  // And a switched-off source stays switched off here too.
+  await harness.controller.handleMessage({ type: "setSource", marketplace: "mock", patch: { enabled: false } });
+  await assert.rejects(
+    () => harness.controller.handleMessage({ type: "priceCheck", marketplace: "mock", keyword: "iphone" }),
+    /switched off/,
+  );
 });

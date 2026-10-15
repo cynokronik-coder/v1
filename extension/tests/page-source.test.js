@@ -168,7 +168,7 @@ test("a stale URL template says what to do instead of pretending the market is e
     (err) => {
       assert.match(err.message, /HTTP 404/);
       assert.match(err.message, /URL template .* has probably gone stale/);
-      assert.match(err.message, /reads your tab|Sources page/);
+      assert.match(err.message, /reads your tab|Marketplaces page/);
       return true;
     },
   );

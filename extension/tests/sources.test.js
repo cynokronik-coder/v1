@@ -163,7 +163,7 @@ test("the registry says why a source is not usable, in the order that matters", 
   assert.equal(describeSource("wallapop", { settings: {} }).status, "unknown");
 });
 
-test("the Sources page groups are derived from the registry, not hard-coded", () => {
+test("the Marketplaces page groups are derived from the registry, not hard-coded", () => {
   const groups = sourcesByKind();
   const listed = groups.flatMap((group) => group.ids);
   assert.deepEqual(listed.sort(), SOURCE_IDS.slice().sort());

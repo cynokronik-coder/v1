@@ -6,7 +6,7 @@
  * tests, and the dashboard only wires them to the DOM.
  */
 
-import { money, percent, relativeTime } from "./format.js";
+import { marketplaceLabel, money, percent, relativeTime } from "./format.js";
 
 export const VERDICT_LABELS = {
   buy: "buy",
@@ -38,6 +38,69 @@ export function opportunityHeadline(opportunity) {
 /** How confident, and on what evidence. */
 export function confidenceLine(opportunity) {
   return `${opportunity.confidence || "low"} confidence · ${opportunity.confidenceReason || "no sample"}`;
+}
+
+/**
+ * What the resale figure on a card actually is, and where it came from.
+ *
+ * This exists because the card used to show nothing at all in the common case: the
+ * engine's `resaleReferences` list is only filled when a product is priced against
+ * *several* resale sources (the consensus path), so a product with the usual single
+ * reference had no reference line and no working reference button - it looked like
+ * the feature did not exist. Every branch here returns something to show, including
+ * the honest "none measured yet".
+ *
+ * @returns {{measured: boolean, value: string, detail: string}}
+ */
+export function resaleReference(opportunity = {}) {
+  const currency = opportunity.currency || "EUR";
+  const references = opportunity.resaleReferences || [];
+  if (references.length) {
+    const value = references.map((entry) => `${sourceName(entry.source)} ${money(entry.median, currency)}`).join(" · ");
+    const sizes = references
+      .filter((entry) => Number.isFinite(entry.sample))
+      .map((entry) => `${sourceName(entry.source)}: ${entry.sample} listing(s)`);
+    return {
+      measured: true,
+      value,
+      detail: sizes.length
+        ? `${references.length} references compared · median of ${sizes.join(", ")} · the lowest one wins, less ${percent(opportunity.resaleSpread ?? 0)} for disagreement`
+        : `${references.length} references compared`,
+    };
+  }
+  if (Number.isFinite(opportunity.manualResalePrice)) {
+    return {
+      measured: true,
+      value: `${money(opportunity.manualResalePrice, currency)} — the price you typed in`,
+      detail: "manual reference from the catalogue: it overrides anything the marketplaces say",
+    };
+  }
+  if (Number.isFinite(opportunity.resalePrice)) {
+    return {
+      measured: true,
+      value: `${money(opportunity.resalePrice, currency)} — median on ${sourceName(opportunity.resaleSource)}`,
+      detail: `${opportunity.resaleSample ?? 0} resale listing(s) used · ${opportunity.confidence || "low"} confidence`,
+    };
+  }
+  return {
+    measured: false,
+    value: "no resale price measured",
+    detail:
+      `nothing came back from ${sourceName(opportunity.resaleSource)} and there is no manual price` +
+      " — add an eBay keyset in API keys, type a resale price in the Catalogue, or open the search link below",
+  };
+}
+
+/**
+ * A marketplace id as a person would write it. This reuses format.js's labels and
+ * the live registry, so a source added to core/sources.js is named correctly here
+ * without a second list to keep in step; "manual" is the one id that is not a
+ * marketplace at all.
+ */
+function sourceName(id) {
+  if (!id) return "the resale side";
+  if (id === "manual") return "a price you typed";
+  return marketplaceLabel(id);
 }
 
 /** The score, out of 100, plus the three inputs that produced it. */

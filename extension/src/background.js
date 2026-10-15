@@ -10,13 +10,14 @@
  */
 
 import { getAdapter } from "./core/adapters/index.js";
-import { MarketplaceBlocked, MarketplaceError, Pacing } from "./core/adapters/base.js";
+import { MarketplaceBlocked, MarketplaceError, ORDER, Pacing } from "./core/adapters/base.js";
 import { BACKMARKET_PACING } from "./core/adapters/backmarket.js";
 import { EBAY_PACING } from "./core/adapters/ebay.js";
 import { LEBONCOIN_PACING } from "./core/adapters/leboncoin.js";
 import { VINTED_PACING } from "./core/adapters/vinted.js";
 import { DEFAULT_CATALOG, normalizeCatalog } from "./core/catalog.js";
-import { ConfigError, UNOFFICIAL_MARKETPLACES, normalizeWatch, normalizeWatches } from "./core/models.js";
+import { buildStats } from "./core/analyzer.js";
+import { ConfigError, UNOFFICIAL_MARKETPLACES, normalizeWatch, normalizeWatches, slimListing } from "./core/models.js";
 import { replyWith } from "./core/messages.js";
 import { notificationFor, dealPayload } from "./core/notify.js";
 import { runOpportunityScan, summarizeOpportunities } from "./core/opportunity-scan.js";
@@ -35,7 +36,7 @@ import {
   sourceEnabled,
   sourceReady,
 } from "./core/sources.js";
-import { scanAll, skipReason, summarize } from "./core/scan.js";
+import { DEFAULT_PER_PAGE, scanAll, skipReason, summarize } from "./core/scan.js";
 import { Store, chromeBackend } from "./core/storage.js";
 import { createTabTransport } from "./core/tab-transport.js";
 
@@ -464,6 +465,94 @@ export function createController({
     }
   }
 
+  /**
+   * "How much does this cost?" - one keyword, one marketplace, straight to a median.
+   *
+   * This is the estimator the scans use, without a watch or a catalogue entry: it
+   * exists because comparing a listing against a number is only honest if you can
+   * see the number for yourself. One request, one page, no caching and nothing
+   * stored - so it never changes what a scan would find.
+   */
+  async function priceCheck(message = {}) {
+    await store.init();
+    const settings = { ...store.settings, credentials: credentials(store.settings) };
+    const marketplace = message.marketplace === "lbc" ? "leboncoin" : message.marketplace;
+    const keyword = String(message.keyword || "").trim();
+    const source = sourceById(marketplace);
+    if (!source) throw new ConfigError(`unknown marketplace '${marketplace}' (expected: ${SOURCE_IDS.join(" | ")})`);
+    if (!keyword) throw new ConfigError("type something to search for");
+    if (!sourceEnabled(marketplace, settings)) {
+      throw new ConfigError(`${source.label} is switched off - turn it on in the Marketplaces page`);
+    }
+    if (settings.credentials?.[marketplace] === false) {
+      throw new ConfigError(
+        `${source.label} needs credentials first: ${(credentialKeysFor(marketplace) || []).join(", ")} in Settings`,
+      );
+    }
+
+    const bound = (value) => {
+      const n = Number(value);
+      return value === "" || value === null || value === undefined || !Number.isFinite(n) ? null : n;
+    };
+    // `acknowledgeTerms: true` is the same choice "Test this source" makes: this is a
+    // single request the user asked for by name, not a background collection run.
+    const adapter = adapterFor({ marketplace, domain: source.hosts?.[0] || null, acknowledgeTerms: true }, settings);
+    const started = now();
+    let result;
+    try {
+      result = await adapter.search({
+        searchText: keyword,
+        filters: {},
+        minPrice: bound(message.minPrice),
+        maxPrice: bound(message.maxPrice),
+        page: 1,
+        perPage: settings.perPage || DEFAULT_PER_PAGE,
+        order: ORDER.RELEVANCE,
+        currency: null,
+      });
+    } catch (err) {
+      const blocked = err instanceof MarketplaceBlocked;
+      return {
+        ok: false,
+        marketplace,
+        label: source.label,
+        keyword,
+        detail: `${err.name}: ${err.message}`,
+        advice: blocked
+          ? "Browse this marketplace in a normal tab first, then try again."
+          : "Check your connection, then try again - or switch this source to 'reads your tab'.",
+      };
+    }
+
+    const items = (result.items || []).filter((item) => typeof item.price === "number" && item.price > 0);
+    if (!items.length) {
+      return {
+        ok: false,
+        marketplace,
+        label: source.label,
+        keyword,
+        detail: "the marketplace answered, but returned no listing with a readable price",
+        advice: source.advice || "Try a shorter keyword, or widen the price band.",
+      };
+    }
+    const currency = items[0].currency || "EUR";
+    const stats = buildStats(items.map((item) => item.price), currency);
+    const cheapest = [...items].sort((a, b) => a.price - b.price).slice(0, 8).map(slimListing);
+    return {
+      ok: true,
+      marketplace,
+      label: source.label,
+      keyword,
+      currency,
+      stats,
+      checked: items.length,
+      totalEntries: result.totalEntries ?? null,
+      cheapest,
+      durationMs: now() - started,
+      via: adapter.lastTransport || adapter.lastSource || null,
+    };
+  }
+
   async function selfCheck({ marketplace = null } = {}) {
     await store.init();
     const settings = { ...store.settings, credentials: credentials(store.settings) };
@@ -485,7 +574,7 @@ export function createController({
         probe.acknowledgeTerms ||
         settings.acknowledgeAll ||
         sourceConfig(id, settings).acknowledgeTerms === true ||
-        // "Test this source" on the Sources page is itself the acknowledgement for
+        // "Test this source" on the Marketplaces page is itself the acknowledgement for
         // that one request, otherwise the button could never tell you anything.
         Boolean(marketplace);
       if (UNOFFICIAL_MARKETPLACES[id] && !acknowledged) {
@@ -526,7 +615,7 @@ export function createController({
       ),
       log: data.log.slice(0, 20),
       unofficialMarketplaces: Object.keys(UNOFFICIAL_MARKETPLACES),
-      // The Sources page is a loop over these two lists, so it can never list a
+      // The Marketplaces page is a loop over these two lists, so it can never list a
       // marketplace the engine does not have (or hide one it does).
       sources: SOURCES.map((source) => {
         const described = describeSource(source.id, { settings: data.settings });
@@ -621,6 +710,8 @@ export function createController({
         return runOpportunities({ reason: message.reason || "manual" });
       case "selfCheck":
         return { results: await selfCheck({ marketplace: message.marketplace || null }) };
+      case "priceCheck":
+        return priceCheck(message);
       case "setSource": {
         // Per-source switch, mode, URL template and terms acknowledgement.
         await store.init();

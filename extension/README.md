@@ -20,7 +20,7 @@ Chrome, Edge, Brave, Vivaldi or any Chromium 120+:
 2. Turn on **Developer mode** (top right).
 3. Click **Load unpacked** and pick this `extension/` folder.
 4. The dashboard opens by itself. Click **Try offline demo** to see it work with no
-   network at all, then add a real watch, then read the **Sources** page.
+   network at all, then add a real watch, then read the **Marketplaces** page.
 
 Firefox is not supported yet (it needs a different extension API surface). Safari would
 need an Xcode build; neither is worth pretending otherwise.
@@ -28,20 +28,47 @@ need an Xcode build; neither is worth pretending otherwise.
 After updating the code, come back to `chrome://extensions` and press **Reload** on the
 card, then reopen the dashboard.
 
-## The five pages
+## The eight tools
 
-| Page | What it is for |
+One tool per page, listed in the rail down the left-hand side, which stays put while a
+page scrolls. Every tool is reachable from the rail at any time.
+
+| Tool | What it is for |
 |---|---|
-| **Deals** | The listings a watch found below its market price, with the numbers behind the verdict. Star the good ones, mark the rest bought or hidden. |
+| **Deals** | The listings a watch found below its market price, with the numbers behind the verdict. Star the good ones, mark the rest bought or hidden. The watches, markets, self-check and activity panels live beside it. |
 | **Opportunities** | Products that look cheaper to buy than to resell: buy-side price, resale reference(s), fees, margin, demand, trend, confidence. |
+| **Price check** | One keyword, one marketplace, straight to a median - the same estimator the scans use, without creating a watch. Use it to sanity-check a reference price. |
+| **Catalogue** | The products an opportunities run samples: keyword, price band, which markets to buy on, which resale reference to price against, and an optional manual resale price. |
+| **Marketplaces** | Every marketplace the engine knows, how it is reached, what its terms say, and a switch for each one. Plus the optional data providers. |
+| **API keys** | Step-by-step setup for each key - the eBay keyset and each data provider - naming the exact Settings field it goes in and how to prove it works. Nothing here is required. |
 | **History** | Every scan pass and every opportunities run, newest first, plus a price line per watch so you can see a market move. |
-| **Sources** | Every marketplace the engine knows, how it is reached, what its terms say, and a switch for each one. Plus the optional data providers. |
-| **Settings** | Intervals, transports, eBay keys, provider keys, fees and thresholds, trend sources, and your own hot keywords. |
+| **Settings** | Intervals, transports, fees and thresholds, trend sources, your own hot keywords, and the fields the keys from the API keys page are pasted into. |
+
+### Wiring up a key
+
+Keys are optional: with none, the extension still works by reading pages from your own
+browser. Each one buys one specific capability, and the **API keys** page spells out the
+click-path for each - sign up, where in the vendor's dashboard the token lives, which
+Settings field takes it, and which switch spends it (a SerpApi key does nothing until you
+tick *use Google Shopping as an extra resale reference*, and an Apify token does nothing
+until you tick the fallback *and* name an actor on the marketplace row).
+
+| Key | Settings field(s) | What it unlocks |
+|---|---|---|
+| eBay developer keyset | `ebayClientId`, `ebayClientSecret`, `ebayMarketplaceId` | eBay as a buying source and the preferred resale reference. Free developer account, no seller account. |
+| Apify | `apifyToken` (+ an actor id per marketplace row) | A scraper fallback for marketplaces with no open tab and no search URL. |
+| SerpApi | `serpApiKey` | Google Shopping as an extra resale reference, and Google Trends as the demand signal. 250 searches/month free. |
+| Bright Data | `brightDataToken`, `brightDataZone` | Fetch a marketplace page from their infrastructure when a site refuses your network. **Both** fields are needed. |
+| Keepa | `keepaKey` | Amazon price history by ASIN. |
+
+Keys are stored in this browser profile and sent to nobody but the vendor they belong to.
+After pasting one, press **Test every enabled source** on the Marketplaces page: that makes
+one real request and reports what actually happened.
 
 ## Where the data comes from (read this before trusting the numbers)
 
 Twelve entries are registered in one file, `src/core/sources.js` (eleven real marketplaces
-plus the offline demo), and the Sources page is generated from it. Being straight about how
+plus the offline demo), and the Marketplaces page is generated from it. Being straight about how
 each one is reached matters more than the count, so:
 
 | Source | How it is reached | Terms |
@@ -59,7 +86,7 @@ each one is reached matters more than the count, so:
 **Two modes, and the difference is the point.**
 
 - `search-url` - the extension builds a search URL from the registry (or one you paste in
-  the Sources page) and fetches it: inside one of *your own tabs* on that host when you
+  the Marketplaces page) and fetches it: inside one of *your own tabs* on that host when you
   have one open, otherwise from the service worker.
 - `reads your tab` (`open-tab`) - the extension **builds no URL and makes no request at
   all**. You run the search yourself; it reads the results page you are looking at. This
@@ -241,7 +268,7 @@ JSON api and then the search page, exactly as before, and the Self-check tells y
 transport answered.
 
 Set **leboncoin transport** in Settings to `auto` (default), `tab`, `api` or `page`. Every
-other source's mode lives on the Sources page (`auto`, `build the search URL`, `reads your
+other source's mode lives on the Marketplaces page (`auto`, `build the search URL`, `reads your
 tab`).
 
 ## Terms of use - please actually read this
@@ -265,10 +292,10 @@ So, the deal we make:
   says no, it stops, logs it, and tells you what to do.
 - It stores **no seller names, contact details, photos or addresses** - only what a price
   comparison needs (title, price, link, condition, and the image URL for the card).
-- You can switch any source off in the Sources page, and it leaves nothing behind on the
+- You can switch any source off in the Marketplaces page, and it leaves nothing behind on the
   marketplace side.
 - `acknowledgeTerms: true` on a watch - or the per-source **terms acknowledged** box on the
-  Sources page, or **"I accept the terms"** in Settings, which covers a whole opportunities
+  Marketplaces page, or **"I accept the terms"** in Settings, which covers a whole opportunities
   run - is required before those marketplaces are used at all. It is your acknowledgement,
   not mine.
 - **Facebook Marketplace ships off** because Meta's terms are explicit about automated
@@ -299,7 +326,7 @@ the request you asked for.
 
 | Symptom | What it means |
 |---|---|
-| A source says `needs an open tab` | That site's search is client-rendered: open it, search for the product yourself, then run. Or paste a working search URL template in the Sources page to switch it to automatic. |
+| A source says `needs an open tab` | That site's search is client-rendered: open it, search for the product yourself, then run. Or paste a working search URL template in the Marketplaces page to switch it to automatic. |
 | Self-check says `MarketplaceBlocked` | The site is refusing automated-looking access from your network. Open the site in a normal tab, browse a bit, then retry - the next scan will use that tab. Do not retry in a loop. |
 | `the search URL template ... has probably gone stale` | The site changed its search path. Open the site, run the search, copy the URL, and paste it into that source's row with `{query}` where the keyword goes. |
 | `HTTP 200 but no product data could be read` | Its markup changed, or its results load client-side. Switch that source to *reads your tab*. |
