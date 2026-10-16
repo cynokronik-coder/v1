@@ -29,6 +29,7 @@ import {
 import { computeOpportunity } from "../src/core/opportunity.js";
 import { normalizeCatalogItem } from "../src/core/catalog.js";
 import { makeListing } from "../src/core/models.js";
+import { Store, memoryBackend } from "../src/core/storage.js";
 
 const listing = (price, marketplace = "vinted") =>
   makeListing({
@@ -250,6 +251,35 @@ test("an unmeasured payout is stated, and is not a zero on the card either", () 
   assert.equal(opportunity.payout.net, null);
   assert.equal(opportunity.payout.verdict, undefined, "there is nothing to score");
   assert.match(opportunity.reasons.join(" "), /no trade-in quote was read \(the buyback page answered HTTP 403\) - unmeasured, not zero/);
+});
+
+test("a payout survives the run, storage and reload", async () => {
+  // The card tests feed the dashboard a hand-written state, so this is the one check that
+  // the field survives the real path a run takes: scored, persisted, read back.
+  const store = new Store(memoryBackend());
+  await store.init();
+  const opportunity = computeOpportunity({
+    product: product({ category: "phones" }),
+    buyListings: [180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290].map((p) => listing(p)),
+    resaleListings: [400, 410, 420].map((p) => listing(p, "backmarket")),
+    payout: payoutFromQuote({ amount: 385, currency: "EUR" }, { category: "phones" }),
+    settings,
+    now: NOW,
+  });
+
+  await store.saveOpportunities([opportunity]);
+  await store.reload();
+
+  const [stored] = store.data.opportunities;
+  assert.equal(stored.payout.measured, true);
+  assert.equal(stored.payout.gross, 385);
+  assert.equal(stored.payout.net, 335.6);
+  assert.equal(stored.payout.breakEvenBuyPrice, 335.6);
+  assert.equal(stored.payout.verdict, "buy");
+  assert.equal(stored.resaleIsCeiling, true, "and the ask is still marked as a ceiling after a round trip");
+  // `JSON.stringify` is what chrome.storage does underneath, so make sure nothing in the
+  // payout depends on a live class or a function.
+  assert.deepEqual(JSON.parse(JSON.stringify(stored.payout)), stored.payout);
 });
 
 test("a payout survives a run where the ask never arrived", () => {
