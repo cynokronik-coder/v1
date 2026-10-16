@@ -208,14 +208,19 @@ export const SOURCES = [
     pacing: SLOW,
     credentials: null,
     note:
-      "Refurbished retail prices - the ceiling a used item has to beat. Reads the product data " +
-      "the search page embeds and says so when it cannot; it never invents a price.",
+      "Two different numbers live here, and the higher one is the one a search returns: what a " +
+      "BUYER is charged, before Back Market's own commission (11% by default, 12% on phones sold " +
+      "in France, 15-20% on accessories) - a ceiling, not a payout. Its trade-in flow separately " +
+      "quotes what a refurbisher pays YOU, which is lower; both are read from the page and " +
+      "neither is invented.",
     termsNote:
       "Back Market documents a seller API only. Personal, low-volume use of its public search " +
-      "page from your own session.",
+      "and buyback pages from your own session.",
     advice:
       "Open backmarket.fr in a tab so the request runs in that session. If Back Market changes " +
-      "its markup, set a manual resale price on the product instead - the run still works.",
+      "its markup, set a manual resale price on the product instead - the run still works. " +
+      "Remember the commission: an asking price of 310 EUR on a phone nets about 272 EUR once " +
+      "Back Market has taken its 12%.",
   },
   {
     id: "fnac",

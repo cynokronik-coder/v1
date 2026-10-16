@@ -42,6 +42,9 @@ export const DEFAULT_SETTINGS = {
   opportunityIntervalMinutes: 720,
   opportunityMinMargin: 0.15, // 15% net margin after fees and shipping
   opportunityMinConfidence: "medium", // low | medium | high
+  // What Back Market would pay for one of these (its trade-in quote), as opposed to what
+  // it charges for one. One extra paced request per product, hence a switch.
+  opportunityTradeIn: true,
   opportunityPerPage: 40,
   opportunityMaxProducts: 12, // how many catalogue entries one run samples
   trendSources: { wikipedia: true, gdelt: false },

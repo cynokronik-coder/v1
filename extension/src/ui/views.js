@@ -7,6 +7,7 @@
  */
 
 import { marketplaceLabel, money, percent, relativeTime } from "./format.js";
+import { TRADE_IN_SOURCES } from "../core/opportunity.js";
 
 export const VERDICT_LABELS = {
   buy: "buy",
@@ -50,7 +51,14 @@ export function confidenceLine(opportunity) {
  * the feature did not exist. Every branch here returns something to show, including
  * the honest "none measured yet".
  *
- * @returns {{measured: boolean, value: string, detail: string}}
+ * One more thing it has to do, now that the Back Market reference is read properly: say
+ * when a number is an **asking price** rather than a payout. A retailer that both sells
+ * and buys - Back Market, momox, the cash-for-goods chains - publishes two prices on the
+ * same model, and the higher one is the one that shows up in a search. Reading it as
+ * "what I will get for mine" is the mistake, so the commission that comes out of it is
+ * named on the card.
+ *
+ * @returns {{measured: boolean, isAsk?: boolean, value: string, detail: string}}
  */
 export function resaleReference(opportunity = {}) {
   const currency = opportunity.currency || "EUR";
@@ -60,12 +68,15 @@ export function resaleReference(opportunity = {}) {
     const sizes = references
       .filter((entry) => Number.isFinite(entry.sample))
       .map((entry) => `${sourceName(entry.source)}: ${entry.sample} listing(s)`);
+    const asks = references.filter((entry) => TRADE_IN_SOURCES.has(entry.source)).map((entry) => sourceName(entry.source));
     return {
       measured: true,
+      isAsk: asks.length > 0,
       value,
-      detail: sizes.length
+      detail: (sizes.length
         ? `${references.length} references compared · median of ${sizes.join(", ")} · the lowest one wins, less ${percent(opportunity.resaleSpread ?? 0)} for disagreement`
-        : `${references.length} references compared`,
+        : `${references.length} references compared`) +
+        (asks.length ? ` · ${asks.join(" and ")} quote asking prices, so those are ceilings, not payouts` : ""),
     };
   }
   if (Number.isFinite(opportunity.manualResalePrice)) {
@@ -76,10 +87,21 @@ export function resaleReference(opportunity = {}) {
     };
   }
   if (Number.isFinite(opportunity.resalePrice)) {
+    // A trade-in source is the case that misleads: its search results are what it
+    // CHARGES. The card says "asking price" and names the commission, so nobody reads a
+    // retail price as an offer for their own item.
+    const tradeIn = TRADE_IN_SOURCES.has(opportunity.resaleSource);
     return {
       measured: true,
-      value: `${money(opportunity.resalePrice, currency)} — median on ${sourceName(opportunity.resaleSource)}`,
-      detail: `${opportunity.resaleSample ?? 0} resale listing(s) used · ${opportunity.confidence || "low"} confidence`,
+      isAsk: tradeIn,
+      value: tradeIn
+        ? `${money(opportunity.resalePrice, currency)} — median asking price on ${sourceName(opportunity.resaleSource)}`
+        : `${money(opportunity.resalePrice, currency)} — median on ${sourceName(opportunity.resaleSource)}`,
+      detail:
+        `${opportunity.resaleSample ?? 0} resale listing(s) used · ${opportunity.confidence || "low"} confidence` +
+        (tradeIn
+          ? ` · what a buyer is charged, before ${sourceName(opportunity.resaleSource)} keeps its commission - a payout is lower`
+          : ""),
     };
   }
   return {
@@ -88,6 +110,65 @@ export function resaleReference(opportunity = {}) {
     detail:
       `nothing came back from ${sourceName(opportunity.resaleSource)} and there is no manual price` +
       " — add an eBay keyset in API keys, type a resale price in the Catalogue, or open the search link below",
+  };
+}
+
+/** `+12.30 EUR` / `-4.00 EUR` - a signed amount, because the sign is the point. */
+function signed(amount, currency) {
+  if (!Number.isFinite(amount)) return "—";
+  return `${amount >= 0 ? "+" : ""}${money(amount, currency)}`;
+}
+
+/**
+ * What a refurbisher would pay for this item today, which is a different question from
+ * what a buyer would pay for it eventually.
+ *
+ * Returns `null` when the run never asked (the switch is off, or Back Market is not one
+ * of the product's references), so a card without a payout line is silent rather than
+ * claiming the payout is zero. `measured: false` means the question was asked and no
+ * number came back - which is stated, along with the link that gets the answer by hand.
+ *
+ * @returns {{measured: boolean, label: string, value: string, detail: string, url: string|null, urlLabel: string}|null}
+ */
+export function payoutReference(opportunity = {}) {
+  const payout = opportunity.payout;
+  if (!payout) return null;
+  const currency = payout.currency || opportunity.currency || "EUR";
+  const label = payout.label || "Instant payout";
+  if (!payout.measured || !Number.isFinite(payout.net)) {
+    return {
+      measured: false,
+      label,
+      value: "no trade-in quote read",
+      detail: `${payout.reason || "open the buyback flow"} · unmeasured, not zero`,
+      url: payout.url || null,
+      urlLabel: "Open the buyback flow",
+    };
+  }
+
+  const parts = [
+    `less ${percent(payout.commissionPct, 0)} commission (${money(payout.commission, currency)}) and ` +
+      `${money(payout.logistics, currency)} logistics`,
+  ];
+  // The published schedule covers smartphones/audio and MacBooks/consoles/tablets only,
+  // so anything else says its logistics figure is missing rather than pretending.
+  if (!payout.logisticsKnown) parts.push("logistics is not published for this category, so the net may be optimistic");
+  if (Number.isFinite(payout.breakEvenBuyPrice)) {
+    parts.push(`breaks even at a buy price of ${money(payout.breakEvenBuyPrice, currency)}`);
+  }
+  if (Number.isFinite(payout.profitAbs)) {
+    parts.push(
+      `${VERDICT_LABELS[payout.verdict] || payout.verdict} at the current buy price ` +
+        `(${signed(payout.profitAbs, currency)}, ${percent(payout.marginPct ?? 0, 1)})`,
+    );
+  }
+  return {
+    measured: true,
+    label,
+    value: `${money(payout.gross, currency)} quote → ${money(payout.net, currency)} net`,
+    detail: parts.join(" · "),
+    url: payout.url || null,
+    urlLabel: "Read the quote yourself",
   };
 }
 

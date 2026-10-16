@@ -125,9 +125,37 @@ function opportunity(over = {}) {
     trend: 0.8,
     score: over.score ?? 0.7,
     verdict: over.verdict || "buy",
+    // Back Market is the resale reference here, so this is a retail ASK - and the payout
+    // below is what the same site would actually pay. The preview carries both, because
+    // showing only the first is exactly the mistake the card now guards against.
+    resaleIsCeiling: true,
+    payout:
+      over.payout === undefined
+        ? {
+            source: "backmarket-buyback",
+            label: "Back Market trade-in",
+            measured: true,
+            gross: 385,
+            commissionPct: 0.1,
+            commission: 38.5,
+            logistics: 10.9,
+            logisticsKnown: true,
+            net: 335.6,
+            currency: "EUR",
+            url: "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13",
+            cost: 180,
+            profitAbs: 155.6,
+            marginPct: 0.8644,
+            breakEvenBuyPrice: 335.6,
+            verdict: "buy",
+          }
+        : over.payout,
     reasons: [
       "buy at ~180.00 EUR (24 listing(s), 15th percentile)",
-      "after 10% commission and 5.00 shipping: net 268.42 on 180.00 cost = +88.42 EUR (49.1%)",
+      "after 12% commission and 5.00 shipping: net 268.42 on 180.00 cost = +88.42 EUR (49.1%)",
+      "backmarket is an asking price, not a payout: that is what a buyer is charged, before the 12% commission it keeps (smartphones sold in France or Spain); what it actually pays is the trade-in line below",
+      "instant trade-in via Back Market trade-in: 385.00 quoted, 335.60 EUR net after 10% commission and 10.90 logistics, against a 180.00 cost = +155.60 (86.4%)",
+      "the trade-in route breaks even at a buy price of 335.60 EUR",
     ],
   };
 }
