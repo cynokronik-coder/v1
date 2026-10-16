@@ -48,6 +48,27 @@ function opportunity(over = {}) {
     keyword: "iphone 13 256",
     buyMarket: ["vinted", "leboncoin"],
     resaleSource: "backmarket",
+    // Back Market both sells and buys, so the reference above is an asking price and the
+    // payout below is the other number the same site publishes for the same model.
+    resaleIsCeiling: true,
+    payout: {
+      source: "backmarket-buyback",
+      label: "Back Market trade-in",
+      measured: true,
+      gross: 385,
+      commissionPct: 0.1,
+      commission: 38.5,
+      logistics: 10.9,
+      logisticsKnown: true,
+      net: 335.6,
+      currency: "EUR",
+      url: "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13",
+      cost: 180,
+      profitAbs: 155.6,
+      marginPct: 0.8644,
+      breakEvenBuyPrice: 335.6,
+      verdict: "buy",
+    },
     buyPrice: 180,
     resalePrice: 310,
     profitAbs: 84.4,
@@ -783,8 +804,24 @@ test("a product priced against one resale source still states its reference, and
   assert.equal(reference.classList.contains("is-none"), false, "a measured reference must not be marked missing");
   // The engine only fills `resaleReferences` when several sources are compared, so
   // the common single-source case is the one that used to render nothing at all.
-  assert.match(reference.querySelector(".reference-value").textContent, /310\.00 EUR — median on Back Market/);
+  assert.match(reference.querySelector(".reference-value").textContent, /310\.00 EUR — median asking price on Back Market/);
   assert.match(reference.querySelector(".reference-samples").textContent, /9 resale listing\(s\) used · high confidence/);
+  // A trade-in source's search results are what it CHARGES, so the card marks the block
+  // and names the commission that stands between that number and money in hand.
+  assert.equal(reference.classList.contains("is-ask"), true);
+  assert.match(reference.querySelector(".reference-samples").textContent, /before Back Market keeps its commission/);
+
+  // The other question the same site answers: what it would pay for the item today.
+  const payout = card.querySelector(".payout");
+  assert.equal(payout.hidden, false);
+  assert.equal(payout.querySelector(".payout-label").textContent, "Back Market trade-in");
+  assert.equal(payout.querySelector(".payout-value").textContent, "385.00 EUR quote → 335.60 EUR net");
+  assert.match(payout.querySelector(".payout-samples").textContent, /less 10% commission \(38\.50 EUR\) and 10\.90 EUR logistics/);
+  assert.match(payout.querySelector(".payout-samples").textContent, /breaks even at a buy price of 335\.60 EUR/);
+  const payoutLink = payout.querySelector("a.payout-link");
+  assert.equal(payoutLink.hidden, false);
+  assert.equal(payoutLink.getAttribute("href"), "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13");
+  assert.match(payoutLink.textContent, /Read the quote yourself/);
 
   // This run stored no resaleUrl, so the button has to fall back to a real search
   // rather than staying hidden (which is what it used to do).
@@ -824,6 +861,43 @@ test("a card with nowhere to point hides the button rather than faking one", asy
   const card = doc.querySelector("#opportunities .opp");
   assert.equal(card.querySelector("a.opp-buy").hidden, true);
   assert.equal(card.querySelector("a.opp-resale").hidden, false, "eBay is always a usable fallback resale search");
+});
+
+test("a card whose run never asked about a payout hides the block, rather than showing a zero", async () => {
+  const { doc } = await open({ state: baseState({ opportunities: [opportunity({ payout: null })] }) });
+  doc.querySelector('[data-page="opportunities"]').click();
+  await settle();
+  const card = doc.querySelector("#opportunities .opp");
+  assert.equal(card.querySelector(".payout").hidden, true, "a payout nobody asked for is not a payout of nothing");
+  assert.equal(card.querySelector(".reference").hidden, false, "the resale reference is unaffected");
+});
+
+test("an unmeasured payout is stated on the card, with the link that gets the real answer", async () => {
+  const { doc } = await open({
+    state: baseState({
+      opportunities: [
+        opportunity({
+          payout: {
+            source: "backmarket-buyback",
+            label: "Back Market trade-in",
+            measured: false,
+            gross: null,
+            net: null,
+            currency: "EUR",
+            url: "https://www.backmarket.fr/fr-fr/buyback/home",
+            reason: "the buyback page answered HTTP 403",
+          },
+        }),
+      ],
+    }),
+  });
+  doc.querySelector('[data-page="opportunities"]').click();
+  await settle();
+  const payout = doc.querySelector("#opportunities .opp .payout");
+  assert.equal(payout.classList.contains("is-none"), true);
+  assert.match(payout.querySelector(".payout-value").textContent, /no trade-in quote read/);
+  assert.match(payout.querySelector(".payout-samples").textContent, /HTTP 403 · unmeasured, not zero/);
+  assert.match(payout.querySelector("a.payout-link").getAttribute("href"), /buyback\/home/);
 });
 
 test("Track as a watch turns a scored product into a real watch, and lands you on Deals", async () => {

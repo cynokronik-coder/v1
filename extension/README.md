@@ -36,7 +36,7 @@ page scrolls. Every tool is reachable from the rail at any time.
 | Tool | What it is for |
 |---|---|
 | **Deals** | The listings a watch found below its market price, with the numbers behind the verdict. Star the good ones, mark the rest bought or hidden. The watches, markets, self-check and activity panels live beside it. |
-| **Opportunities** | Products that look cheaper to buy than to resell: buy-side price, resale reference(s), fees, margin, demand, trend, confidence. |
+| **Opportunities** | Products that look cheaper to buy than to resell: buy-side price, resale reference(s) and whether each one is an asking price or a payout, fees, margin, demand, trend, confidence. |
 | **Price check** | One keyword, one marketplace, straight to a median - the same estimator the scans use, without creating a watch. Use it to sanity-check a reference price. |
 | **Catalogue** | The products an opportunities run samples: keyword, price band, which markets to buy on, which resale reference to price against, and an optional manual resale price. |
 | **Marketplaces** | Every marketplace the engine knows, how it is reached, what its terms say, and a switch for each one. Plus the optional data providers. |
@@ -76,7 +76,7 @@ each one is reached matters more than the count, so:
 | **eBay** | Its **official Browse API**, with your free developer keyset | Documented API |
 | **Vinted** | The catalog endpoint its own web app calls, through your session | Unofficial: terms forbid bots/scraping |
 | **leboncoin** | Its own client's endpoints, from your tab where possible | Unofficial: `robots.txt` asks search robots not to crawl |
-| **Back Market** | The product data its search page embeds | Unofficial (its documented API is seller-only) |
+| **Back Market** | The product data its search page embeds, plus its trade-in quote page | Unofficial (its documented API is seller-only) |
 | **Fnac**, **Cdiscount** | Their public search pages | Unofficial (both document seller APIs only) |
 | **Easy Cash**, **Cash Express**, **Cash Converters** | The buy-back chains' own storefronts - the page you have open | Unofficial |
 | **momox** | Its shop pages (a hard floor on what resale can fetch) | Unofficial |
@@ -183,6 +183,31 @@ trend      Wikimedia pageviews for the product's article (free, key-less), optio
 320, Back Market says 199 and momox says 180, the card quotes 180 and shows the whole
 table. The first offer that sells is the cheap one, so quoting the most flattering platform
 would invent margin that does not exist. With a single reference nothing changes.
+
+**A reference can be an asking price, and that is not a payout.** Two of these sources do
+both jobs - Back Market and the cash-for-goods chains sell to the public *and* buy goods
+outright - and a search returns the first number: what a buyer is charged. That is a
+**ceiling**, not what you will be given for your item, and it is before Back Market keeps
+its commission (11% by default, 12% on phones sold in France or Spain, 15-20% on
+accessories; that is its published schedule, and your own contract with it may differ). So
+the reference block turns amber and says *asking price*, and names the commission.
+
+Back Market's other number is read separately and shown on the card as **Instant payout**:
+one extra paced request to its trade-in ("reprise") page, which quotes what a refurbisher
+pays. The gap is not a rounding error - measured 2026, an iPhone 13 Pro Max showed **up to
+385 EUR** on Back Market's buyback page against refurbished **asks starting at 432 EUR** for
+the same model. The payout is scored on its own line - net of the 10% trade-in commission
+and the return logistics (10.90 EUR for phones and audio, 13.90 EUR for MacBooks, consoles
+and tablets) - with its own verdict and a **break-even buy price**, which is the most the
+item can cost before the trade-in route stops making money. It is never averaged into the
+resale ask, because those are two different trades: money now with no buyer and no listing,
+versus money later if it sells.
+
+When its page cannot be read - the model is not in the buyback catalogue, an interstitial
+was served, or the quote is only shown once you have answered its condition questions - the
+card says **no trade-in quote read** and links to the flow. That is deliberate: a payout of
+zero and no payout at all are different claims. The whole thing switches off in Settings
+(*ask Back Market what it would pay*), which saves one request per product.
 
 The verdict is `buy`, `watch`, `skip` or `insufficient data`, and the last one is used
 whenever the sample is too thin - a beautiful margin computed from four listings is
@@ -337,6 +362,7 @@ the request you asked for.
 | Opportunities are all "not enough data" | One side of the market is thin. Widen the keyword, lower `opportunityMinConfidence`, add a resale reference, or set a manual resale price. |
 | A product shows a low resale price you disagree with | That is the conservative rule: the cheapest credible reference is quoted. Remove the reference you do not trust from the product's `also price against` field. |
 | "Back Market returned no product data" | Its markup changed or an interstitial was served. Type the price in yourself - that reference always works. |
+| "no trade-in quote read" | Back Market's buyback page was not readable, or the model is not in its buyback catalogue. The card links to the flow: read the offer there and type it in, or set a manual resale price. |
 | No deals for days | Normal. That is what "below market" means. Check the log line each pass: it says how many comparables were seen. |
 | I edited a field and it reverted | Fixed in 0.2.0: the 5-second refresh no longer rebuilds an editor you are typing into (watch cards, catalogue rows and source rows all keep what you typed). If you see it again, it is a bug - the History page and the Activity log show what the worker thought it had. |
 

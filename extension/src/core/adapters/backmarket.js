@@ -1,6 +1,18 @@
 /**
  * Back Market - resale-reference adapter (refurbished asking prices).
  *
+ * There are two different numbers on this site and this file only produces one of
+ * them. A search of backmarket.fr returns the price a **buyer** is charged, which is
+ * the seller's asking price. What Back Market *pays* is a separate thing: its trade-in
+ * ("reprise") flow, where a professional refurbisher quotes for your device. Measured
+ * on the same model, 2026: an iPhone 13 Pro Max showed "up to 385 EUR" on Back
+ * Market's buyback page while its refurbished asks for that model started at 432 EUR.
+ *
+ * So `search()` here answers "what is one of these worth to a buyer" - a ceiling on the
+ * sell side, before Back Market's own commission - and `quote()` answers "what will
+ * Back Market hand me for mine". They are never mixed; see core/buyback.js for the
+ * payout maths and core/opportunity.js for why they are scored separately.
+ *
  * Read this before trusting it. Back Market publishes **no** public API for
  * keyword search: the only documented API is the seller API (own listings and
  * per-listing competitor data, behind a seller token). Its consumer search page is
@@ -23,6 +35,7 @@
  */
 
 import { makeListing } from "../models.js";
+import { buybackUrl } from "../buyback.js";
 import { Pacing, MarketplaceBlocked, MarketplaceError, looksLikeChallenge } from "./base.js";
 
 export const DEFAULT_DOMAIN = "www.backmarket.fr";
@@ -216,6 +229,82 @@ export function parseBackMarketHtml(html, { domain = DEFAULT_DOMAIN } = {}) {
   return { items: products, source: products.length ? "embedded-json" : null };
 }
 
+/**
+ * Fields a buyback payload would name explicitly. Kept to a short, unambiguous list:
+ * a generic `price` on this page is the asking price of something else, and reading it
+ * as a payout would be exactly the mistake this whole path exists to avoid.
+ */
+const BUYBACK_JSON_KEYS = [
+  "buybackPrice",
+  "buyBackPrice",
+  "maxBuybackPrice",
+  "buybackMaxPrice",
+  "estimatedBuybackPrice",
+  "estimationPrice",
+];
+
+/**
+ * The headline quote as it is written on the page: "jusqu'à 385 €" / "up to €385".
+ * The framing is required deliberately - an unanchored euro amount anywhere in the
+ * document could be a shipping fee, a suggested retail price or another product.
+ */
+const MAX_QUOTE_PATTERNS = [
+  /jusqu(?:'|’)?[àa]\s*(?:€\s*)?(\d{1,4}(?:[ .,]\d{1,3}){0,2})\s*(?:€|EUR)/i,
+  /up to\s*(?:€\s*)?(\d{1,4}(?:[ .,]\d{1,3}){0,2})/i,
+];
+
+function collectBuybackAmounts(node, { depth = 0, out = [], limit = 4 } = {}) {
+  if (out.length >= limit || depth > 12 || node === null || typeof node !== "object") return out;
+  if (Array.isArray(node)) {
+    for (const item of node) collectBuybackAmounts(item, { depth: depth + 1, out, limit });
+    return out;
+  }
+  for (const [key, value] of Object.entries(node)) {
+    if (BUYBACK_JSON_KEYS.includes(key)) {
+      const amount = toFloat(value);
+      if (amount !== null && amount > 0) out.push(amount);
+      continue;
+    }
+    collectBuybackAmounts(value, { depth: depth + 1, out, limit });
+  }
+  return out;
+}
+
+/**
+ * A trade-in quote, or `null`.
+ *
+ * Best-effort by construction and honest about it: Back Market's buyback markup is
+ * undocumented and unverified from this codebase, so this tries the page's own named
+ * fields first, then the headline wording, and returns `null` rather than the first
+ * euro figure it can find. A wrong payout is worse than no payout, because the whole
+ * point of the payout path is that it is the number you can actually rely on.
+ *
+ * @returns {{amount: number, currency: string, readFrom: string, url: string|null}|null}
+ */
+export function parseBuybackQuote(html, { url = null } = {}) {
+  const raw = String(html || "");
+  const amounts = [];
+  for (const payload of [...extractJsonLd(raw), ...extractEmbeddedJson(raw)]) {
+    collectBuybackAmounts(payload, { out: amounts });
+  }
+  if (amounts.length) {
+    // The largest named figure is the top quote the page is advertising.
+    return { amount: Math.max(...amounts), currency: "EUR", readFrom: "named field", url, condition: null, storage: null };
+  }
+
+  // Visible text only: attributes and payloads hold prices that are not this quote.
+  const visible = raw.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]*>/g, " ");
+  for (const pattern of MAX_QUOTE_PATTERNS) {
+    const match = visible.match(pattern);
+    if (!match) continue;
+    const amount = toFloat(match[1]);
+    if (amount !== null && amount > 0) {
+      return { amount, currency: "EUR", readFrom: "page text", url, condition: null, storage: null };
+    }
+  }
+  return null;
+}
+
 export const BACKMARKET_PACING = Object.freeze({ minIntervalMs: 8000, jitterMs: 4000 });
 
 export class BackMarketAdapter {
@@ -274,6 +363,55 @@ export class BackMarketAdapter {
     } catch (err) {
       throw new MarketplaceError(`request to ${url} failed: ${err.message || err}`);
     }
+  }
+
+  /**
+   * The trade-in quote for a model: what Back Market's refurbishers pay.
+   *
+   * Deliberately **not** fatal when it cannot be read. A search that comes back empty
+   * makes the whole answer wrong, so `search` throws; a missing trade-in quote only
+   * removes a second opinion, and the number can be read off the page in one click. So
+   * this always returns the URL, with `quote: null` and a stated reason when there is
+   * no number - never a zero, and never a guess.
+   */
+  async quote({ product = {}, category = null, slug = null, keyword = null } = {}) {
+    // The product is what carries the model name and the category band, which is the whole
+    // input to the URL: "iPhone 13 Pro Max" in "phones" is a page on this site, and a
+    // keyword is not.
+    const { url, exact } = buybackUrl({
+      category: category || product.category,
+      slug: slug || product.name || keyword,
+      domain: this.domain,
+      locale: this.locale,
+    });
+    const result = { url, exact, quote: null, reason: null };
+    let response;
+    try {
+      await this.pacing.wait();
+      response = await this._fetch(url);
+      this.pacing.mark();
+      this.requestsMade += 1;
+    } catch (err) {
+      result.reason = `the buyback page could not be fetched (${err.message || err})`;
+      return result;
+    }
+    if (!response || response.status !== 200) {
+      // Normally a Cloudflare interstitial, which is exactly why _fetch tries the user's
+      // own tab first: the reason says so rather than blaming the model.
+      result.reason =
+        `the buyback page answered HTTP ${response?.status ?? "nothing"} - open ${this.domain} in a tab ` +
+        `and run again, or read the quote at ${url}`;
+      return result;
+    }
+    const quote = parseBuybackQuote(response.body, { url });
+    if (!quote) {
+      result.reason =
+        `no quote could be read from ${url} - the model may not be in the buyback catalogue, ` +
+        "or the page does not state one until you answer its condition questions";
+      return result;
+    }
+    result.quote = quote;
+    return result;
   }
 
   async search(query) {

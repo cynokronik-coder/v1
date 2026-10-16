@@ -12,6 +12,7 @@ import {
   opportunityCategories,
   opportunityHeadline,
   pageCounts,
+  payoutReference,
   priceSeries,
   resaleReference,
   scoreLine,
@@ -142,8 +143,18 @@ test("a resale reference is always stated - measured, or honestly not", () => {
   // used to show no reference at all because of it.
   const single = resaleReference({ currency: "EUR", resaleSource: "backmarket", resalePrice: 310, resaleSample: 9, confidence: "high" });
   assert.equal(single.measured, true);
-  assert.equal(single.value, "310.00 EUR — median on Back Market");
+  // Back Market both sells and buys, so a search of it returns what it CHARGES. Calling
+  // that a median invites reading a retail ask as an offer for your own item.
+  assert.equal(single.value, "310.00 EUR — median asking price on Back Market");
+  assert.equal(single.isAsk, true);
   assert.match(single.detail, /9 resale listing\(s\) used/);
+  assert.match(single.detail, /before Back Market keeps its commission - a payout is lower/);
+
+  // A private-seller channel is not an ask in that sense: the listing price is what the
+  // seller receives, so the wording stays as it was.
+  const vinted = resaleReference({ currency: "EUR", resaleSource: "vinted", resalePrice: 300, resaleSample: 5, confidence: "medium" });
+  assert.equal(vinted.value, "300.00 EUR — median on Vinted");
+  assert.equal(vinted.isAsk, false);
 
   // A manual price is what gets used, so it is what gets shown.
   const manual = resaleReference({ currency: "EUR", resaleSource: "manual", manualResalePrice: 275, resalePrice: 275, resaleSample: 0 });
@@ -175,4 +186,77 @@ test("a resale reference is always stated - measured, or honestly not", () => {
   // An empty object must not throw, because a half-written record is a real state.
   assert.equal(resaleReference({}).measured, false);
   assert.match(resaleReference({}).detail, /the resale side/);
+});
+
+// --- what a refurbisher would pay ------------------------------------------
+
+test("a payout states the quote, what comes out of it, and what it means", () => {
+  const measured = payoutReference({
+    currency: "EUR",
+    payout: {
+      source: "backmarket-buyback",
+      label: "Back Market trade-in",
+      measured: true,
+      gross: 385,
+      commissionPct: 0.1,
+      commission: 38.5,
+      logistics: 10.9,
+      logisticsKnown: true,
+      net: 335.6,
+      currency: "EUR",
+      url: "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13",
+      breakEvenBuyPrice: 335.6,
+      profitAbs: 155.6,
+      marginPct: 0.8644,
+      verdict: "buy",
+    },
+  });
+  assert.equal(measured.measured, true);
+  assert.equal(measured.label, "Back Market trade-in");
+  assert.equal(measured.value, "385.00 EUR quote → 335.60 EUR net");
+  assert.match(measured.detail, /less 10% commission \(38\.50 EUR\) and 10\.90 EUR logistics/);
+  assert.match(measured.detail, /breaks even at a buy price of 335\.60 EUR/);
+  assert.match(measured.detail, /buy at the current buy price \(\+155\.60 EUR, 86\.4%\)/);
+  assert.equal(measured.url, "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13");
+  assert.match(measured.urlLabel, /Read the quote/);
+});
+
+test("a payout from a category with no published logistics charge says the net may be optimistic", () => {
+  const guessy = payoutReference({
+    payout: {
+      label: "Back Market trade-in",
+      measured: true,
+      gross: 100,
+      commissionPct: 0.1,
+      commission: 10,
+      logistics: 0,
+      logisticsKnown: false,
+      net: 90,
+      currency: "EUR",
+    },
+  });
+  assert.match(guessy.detail, /less 10% commission \(10\.00 EUR\) and 0\.00 EUR logistics/);
+  assert.match(guessy.detail, /logistics is not published for this category, so the net may be optimistic/);
+});
+
+test("a payout nobody asked about is silence; a payout nobody could read is a stated gap", () => {
+  assert.equal(payoutReference({}), null, "a run that never asked shows no payout line at all");
+  assert.equal(payoutReference({ payout: null }), null);
+  // A measured payout that somehow arrives without a number is still not a zero.
+  assert.equal(payoutReference({ payout: { measured: true, net: null } }).measured, false);
+
+  const missing = payoutReference({
+    payout: {
+      label: "Back Market trade-in",
+      measured: false,
+      net: null,
+      url: "https://www.backmarket.fr/fr-fr/buyback/home",
+      reason: "the buyback page answered HTTP 403",
+    },
+  });
+  assert.equal(missing.measured, false);
+  assert.equal(missing.value, "no trade-in quote read");
+  assert.match(missing.detail, /HTTP 403 · unmeasured, not zero/);
+  assert.equal(missing.url, "https://www.backmarket.fr/fr-fr/buyback/home");
+  assert.match(missing.urlLabel, /Open the buyback flow/);
 });

@@ -23,9 +23,104 @@ export const FEE_PRESETS = {
   vinted: { commissionPct: 0, paymentPct: 0, note: "private sellers pay no commission" },
   leboncoin: { commissionPct: 0, paymentPct: 0, note: "private sellers pay no commission" },
   ebay: { commissionPct: 0.11, paymentPct: 0.02, note: "~11-13% final value fee plus payment processing" },
-  backmarket: { commissionPct: 0.1, paymentPct: 0.02, note: "marketplace commission plus payment fees" },
+  // Back Market's real rate depends on the category - see BACKMARKET_COMMISSION below.
+  // The preset is only the fallback for a product with no usable category.
+  backmarket: { commissionPct: 0.11, paymentPct: 0.02, note: "category-dependent commission plus payment fees" },
   manual: { commissionPct: 0.1, paymentPct: 0.02, note: "a guess: adjust the numbers for where you actually sell" },
 };
+
+/**
+ * Back Market does not charge one rate, so the flat 10% this used to carry was wrong
+ * for most of the catalogue: it understated a phone sale by 2 points and an accessory
+ * sale by 5 to 25.
+ *
+ * From the Seller Terms & Conditions schedule effective 2024-08-10, EU/FR: MacBooks and
+ * iMacs 10%; laptops and consoles 10% *only* when sold in the UK; smartphones sold in
+ * France or Spain 12%; Apple accessories excluding cases 15%; non-Apple accessories and
+ * repair kits 20%; cases 25% (non-smartphone and Apple-branded) or 35% (non-Apple
+ * smartphone cases); everything else 11%. The commission is charged on the total the
+ * buyer pays, tax and shipping included, so a per-item margin keyed only on the item
+ * price is still marginally optimistic.
+ *
+ * Two things this deliberately does not model: the 50 EUR monthly subscription (no
+ * per-item margin can express it - it is disclosed in the Marketplaces page instead) and
+ * any seller-specific rate, since Back Market's own terms say the commission is "in
+ * accordance with the terms agreed upon" with each seller. The product's own `fees`
+ * override always wins over this schedule.
+ */
+export const BACKMARKET_COMMISSION = {
+  smartphones: { pct: 0.12, band: "smartphones sold in France or Spain" },
+  mac: { pct: 0.1, band: "MacBooks and iMacs" },
+  ukLaptopsAndConsoles: { pct: 0.1, band: "laptops and consoles sold in the UK" },
+  appleAccessory: { pct: 0.15, band: "Apple accessories excluding cases" },
+  accessory: { pct: 0.2, band: "non-Apple accessories and repair kits" },
+  other: { pct: 0.11, band: "all other products" },
+};
+
+const APPLE_NAME = /\b(apple|macbook|imac|airpods|ipad|iphone|magic keyboard|mac mini|mac studio)\b/;
+/** Categories that are plausibly "accessories" in the fee schedule's sense. */
+const ACCESSORY_CATEGORIES = new Set(["audio", "wearables", "keyboards"]);
+
+/**
+ * Which band a catalogue entry falls in, and the rate that implies. Sector names are
+ * matched rather than product names, because the schedule is written per category.
+ *
+ * @returns {{pct: number, band: string}}
+ */
+export function backmarketCommissionPct({ category = "other", name = "" } = {}) {
+  const cat = String(category || "other").toLowerCase();
+  const apple = APPLE_NAME.test(String(name || "").toLowerCase());
+  if (cat === "phones" || cat === "smartphones") return BACKMARKET_COMMISSION.smartphones;
+  if (cat === "laptops" && apple) return BACKMARKET_COMMISSION.mac;
+  if (ACCESSORY_CATEGORIES.has(cat)) {
+    return apple ? BACKMARKET_COMMISSION.appleAccessory : BACKMARKET_COMMISSION.accessory;
+  }
+  return BACKMARKET_COMMISSION.other;
+}
+
+/**
+ * Sources that sell to the public *and* buy goods outright. A retailer's asking price
+ * and its trade-in offer are two different numbers on the same site, and reading one as
+ * the other invents money - Back Market's own buyback page quoted "up to 385 EUR" for an
+ * iPhone 13 Pro Max while its refurbished asks for the same model started at 432 EUR.
+ * A reference from one of these is a ceiling, not a payout.
+ */
+export const TRADE_IN_SOURCES = new Set(["backmarket", "momox", "easycash", "cashexpress", "cashconverters"]);
+
+/**
+ * The reason lines for the trade-in route.
+ *
+ * A module-level function because the payout is scored on more than one path: it is real
+ * information even in a run where the resale side came back empty, which is exactly the
+ * run where "what will someone pay me for this?" is the only question left.
+ *
+ * @param {object|null} payout
+ * @param {object} [ctx] { cost, currency, selfSellVerdict }
+ * @returns {string[]}
+ */
+export function payoutReasons(payout, { cost = null, currency = "EUR", selfSellVerdict = null } = {}) {
+  if (!payout) return [];
+  if (!payout.measured) return [`no trade-in quote was read (${payout.reason}) - unmeasured, not zero`];
+  const payoutCurrency = payout.currency || currency;
+  const amount = (value) => Number(value).toFixed(2);
+  if (!Number.isFinite(payout.profitAbs)) {
+    return [
+      `${payout.label}: ${amount(payout.gross)} quoted, ${amount(payout.net)} ${payoutCurrency} net after fees ` +
+        "- not scored, because there is no acquisition price to compare it to",
+    ];
+  }
+  return [
+    `instant trade-in via ${payout.label}: ${amount(payout.gross)} quoted, ` +
+      `${amount(payout.net)} ${payoutCurrency} net after ${(payout.commissionPct * 100).toFixed(0)}% commission ` +
+      `and ${amount(payout.logistics)} logistics, against a ${amount(cost)} cost = ` +
+      `${payout.profitAbs >= 0 ? "+" : ""}${amount(payout.profitAbs)} (${(payout.marginPct * 100).toFixed(1)}%)` +
+      (payout.logisticsKnown ? "" : " - logistics for this category is not published, so the net may be optimistic") +
+      (payout.verdict === "skip" && selfSellVerdict && selfSellVerdict !== "skip"
+        ? ". Only the sell-it-yourself route clears the margin"
+        : ""),
+    `the trade-in route breaks even at a buy price of ${amount(payout.breakEvenBuyPrice)} ${payoutCurrency}`,
+  ];
+}
 
 export const DEFAULT_FEES = {
   commissionPct: 0.11,
@@ -72,13 +167,32 @@ export function acquisitionPrice(prices, { quantile: q = 0.15 } = {}) {
   return quantile(clean, q);
 }
 
-export function resolveFees({ product = {}, fees = {} } = {}) {
-  const preset = FEE_PRESETS[product.resaleSource] || FEE_PRESETS[product.sellOn] || {};
+/**
+ * @param {object} args
+ * @param {object} args.product
+ * @param {object} [args.fees]   explicit override
+ * @param {string} [args.source] **the marketplace the item is actually sold on**, which
+ *        is not always the one the catalogue declared: the sell side can be priced by
+ *        several references and the cheapest credible one is quoted, so a product
+ *        declared as "ebay" can end up quoted against Back Market - and it used to keep
+ *        eBay's take-rate while doing so, understating what selling there costs.
+ */
+export function resolveFees({ product = {}, fees = {}, source = null } = {}) {
+  const resolved = source || product.resaleSource || product.sellOn || null;
+  const preset = FEE_PRESETS[resolved] || FEE_PRESETS[product.sellOn] || {};
   // Caller-provided fees win, then the product's own nested or flat value, then the
   // preset for wherever the item gets sold, then the defaults.
   const explicit = { ...(product.fees || {}), ...fees };
+  const backmarket = resolved === "backmarket" ? backmarketCommissionPct(product) : null;
   return {
-    commissionPct: explicit.commissionPct ?? product.commissionPct ?? preset.commissionPct ?? DEFAULT_FEES.commissionPct,
+    source: resolved,
+    commissionPct:
+      explicit.commissionPct ??
+      product.commissionPct ??
+      (backmarket ? backmarket.pct : preset.commissionPct) ??
+      DEFAULT_FEES.commissionPct,
+    commissionBand: backmarket ? backmarket.band : null,
+    note: resolved === "backmarket" && !explicit.commissionPct ? "the published Back Market schedule; your own contract may differ" : preset.note || null,
     paymentPct: explicit.paymentPct ?? product.paymentPct ?? preset.paymentPct ?? DEFAULT_FEES.paymentPct,
     shippingOut: explicit.shippingOut ?? product.shippingOut ?? DEFAULT_FEES.shippingOut,
     shippingIn: explicit.shippingIn ?? product.shippingIn ?? DEFAULT_FEES.shippingIn,
@@ -158,6 +272,8 @@ export function liquidityScore({ totalEntries = null, listings = [], now = Date.
  * @param {Array}  args.resaleListings listings from the resale side (may be empty)
  * @param {number} [args.manualResalePrice]
  * @param {object} [args.trends]       { score, reasons } from core/trends.js
+ * @param {object} [args.payout]       a trade-in quote for this product, as produced by
+ *        core/buyback.js - a *payout*, kept separate from the resale ask
  * @param {object} [args.settings]     { opportunityMinMargin }
  */
 export function computeOpportunity({
@@ -169,6 +285,7 @@ export function computeOpportunity({
   trends = { score: 0, reasons: [] },
   settings = {},
   now = Date.now(),
+  payout = null,
   buyErrors = [],
   resaleErrors = [],
 } = {}) {
@@ -196,7 +313,9 @@ export function computeOpportunity({
         ? median(resalePrices)
         : null;
 
-  const fees = resolveFees({ product });
+  // The source that actually priced this item, not the one the catalogue hoped for.
+  const quotedSource = manual ? "manual" : consensus ? consensus.source : product.resaleSource || "ebay";
+  const fees = resolveFees({ product, source: quotedSource });
   const confidence = sampleConfidence({ buySize: buyPrices.length, resaleSize: resalePrices.length, manual });
   const resaleSpread = consensus ? consensus.spread : 0;
 
@@ -206,7 +325,11 @@ export function computeOpportunity({
     category: product.category || "other",
     keyword: product.keyword || (product.keywords || [])[0] || product.name,
     buyMarket: product.buyMarket || ["vinted"],
-    resaleSource: manual ? "manual" : consensus ? consensus.source : product.resaleSource || "ebay",
+    resaleSource: quotedSource,
+    // True when the quoted reference is a retailer's asking price rather than money a
+    // seller receives. The card and the reasons both say so.
+    resaleIsCeiling: TRADE_IN_SOURCES.has(quotedSource),
+    payout: payout ? { ...payout } : null,
     resaleReferences: consensus
       ? consensus.references.map((entry) => ({ source: entry.id, median: entry.median, sample: entry.count }))
       : [],
@@ -240,24 +363,53 @@ export function computeOpportunity({
   base.liquidity = Math.round(liquidity.score * 1000) / 1000;
   base.liquidityReasons = liquidity.reasons;
 
+  const minMargin = settings.opportunityMinMargin ?? 0.15;
+  const minConfidence = CONFIDENCE_RANK[settings.opportunityMinConfidence ?? "medium"] ?? 1;
+
+  /**
+   * Score the payout against a cost, as soon as one exists.
+   *
+   * Called before the "no resale price" return below on purpose: a resale sample that
+   * came back empty says nothing about what a refurbisher pays, so the trade-in route is
+   * still a real answer in exactly the run where the arbitrage question could not be.
+   */
+  const scorePayout = (cost) => {
+    if (!base.payout || !base.payout.measured || !Number.isFinite(base.payout.net) || !Number.isFinite(cost)) return;
+    const payoutProfit = base.payout.net - cost;
+    base.payout.cost = Math.round(cost * 100) / 100;
+    base.payout.profitAbs = Math.round(payoutProfit * 100) / 100;
+    base.payout.marginPct = cost > 0 ? Math.round((payoutProfit / cost) * 10000) / 10000 : 0;
+    // The most the item can cost and still break even on the trade-in route. Useful by
+    // itself: it is the number to bid against, and it does not move when asks do.
+    base.payout.breakEvenBuyPrice = Math.round((base.payout.net - fees.shippingIn) * 100) / 100;
+    base.payout.verdict =
+      base.payout.marginPct >= minMargin ? "buy" : base.payout.marginPct >= minMargin / 2 ? "watch" : "skip";
+  };
+
   if (buyPrice === null) {
     reasons.push(
       buyPrices.length === 0
         ? `no acquisition price: the buy-side search returned ${buyListings.length} listing(s) but none inside the price band`
         : "no acquisition price",
     );
+    // Nothing to score it against, but the quote is still worth stating.
+    reasons.push(...payoutReasons(base.payout, { currency: base.currency }));
     base.reasons = reasons;
     return base;
   }
+
+  const cost = buyPrice + fees.shippingIn;
+  scorePayout(cost);
+
   if (resalePrice === null) {
     reasons.push("no resale price: nothing to compare against (sample the resale side, or enter a price by hand)");
+    reasons.push(...payoutReasons(base.payout, { cost, currency: base.currency }));
     base.reasons = reasons;
     return base;
   }
 
   // --- the arithmetic -------------------------------------------------------
   const netProceeds = resalePrice * (1 - fees.commissionPct) * (1 - fees.paymentPct) - fees.shippingOut;
-  const cost = buyPrice + fees.shippingIn;
   const profitAbs = netProceeds - cost;
   const marginPct = cost > 0 ? profitAbs / cost : 0;
   const spreadPct = buyPrice > 0 ? resalePrice / buyPrice - 1 : 0;
@@ -265,9 +417,6 @@ export function computeOpportunity({
   base.profitAbs = Math.round(profitAbs * 100) / 100;
   base.marginPct = Math.round(marginPct * 10000) / 10000;
   base.spreadPct = Math.round(spreadPct * 10000) / 10000;
-
-  const minMargin = settings.opportunityMinMargin ?? 0.15;
-  const minConfidence = CONFIDENCE_RANK[settings.opportunityMinConfidence ?? "medium"] ?? 1;
 
   // Score: margin first (it is the point), then how easily it moves, then whether
   // anyone actually wants it right now. Confidence scales the whole thing down,
@@ -310,6 +459,18 @@ export function computeOpportunity({
   base.verdict = verdict;
   if (verdict === "insufficient data") reasons.push(`confidence ${confidence.level} is below the required ${CONFIDENCE_LABEL[settings.opportunityMinConfidence ?? "medium"]}`);
   if (verdict === "skip") reasons.push(`net margin ${(marginPct * 100).toFixed(1)}% is below ${(minMargin * 100).toFixed(0)}% after fees`);
+
+  // What the quoted reference is *not*. A retailer that both sells and buys is the case
+  // that goes wrong: its asking price reads like an offer for your item, and it is not.
+  if (base.resaleIsCeiling) {
+    reasons.push(
+      `${base.resaleSource} is an asking price, not a payout: that is what a buyer is charged, ` +
+        `before the ${(fees.commissionPct * 100).toFixed(0)}% commission it keeps` +
+        ` (${fees.commissionBand || "published schedule"})` +
+        (base.payout?.measured ? "; what it actually pays is the trade-in line below" : "; its own buy-back offer is the number to look for"),
+    );
+  }
+  reasons.push(...payoutReasons(base.payout, { cost, currency: base.currency, selfSellVerdict: verdict }));
   base.reasons = reasons;
   return base;
 }
