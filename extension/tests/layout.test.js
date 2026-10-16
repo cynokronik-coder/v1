@@ -69,6 +69,31 @@ test("a hidden button is really hidden too", () => {
   }
 });
 
+test("the payout block is really hidden when the run never asked for one", () => {
+  // The same trap as the pages and the buttons, one level deeper: `.payout` lives inside a
+  // <template>, so checking it against the real cascade means putting a rendered card in
+  // the document. Without this, every card would advertise a payout of nothing.
+  const { doc, window } = render();
+  const card = doc.querySelector("#opportunity-template").content.firstElementChild.cloneNode(true);
+  const payout = card.querySelector(".payout");
+  assert.ok(payout, "an opportunity card should carry a payout block");
+  assert.equal(payout.hidden, true, "hidden by default: most runs do not ask for a quote");
+  doc.body.append(card);
+  assert.equal(
+    window.getComputedStyle(payout).display,
+    "none",
+    ".payout sets a display rule that defeats [hidden] - a payout nobody asked about would show on every card",
+  );
+  payout.hidden = false;
+  assert.notEqual(window.getComputedStyle(payout).display, "none", "and unhiding it must still make it visible");
+});
+
+test("a trade-in reference can be marked as an asking price, not a payout", () => {
+  // Back Market's search results are what it CHARGES. The block has to be able to say so.
+  assert.match(CSS, /\.reference\.is-ask\s*\{/, "the resale reference needs an \"this is an ask\" state");
+  assert.match(CSS, /\.payout\.is-none\s*\{/, "and the payout needs a \"asked, nothing came back\" state");
+});
+
 test("the tool rail stays put while a long page scrolls", () => {
   assert.match(CSS, /\.rail\s*\{[^}]*position:\s*sticky/, "the rail must be sticky, or the tools scroll away");
 });

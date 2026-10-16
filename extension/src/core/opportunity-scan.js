@@ -16,6 +16,7 @@
 
 import { MarketplaceBlocked, MarketplaceError, ORDER } from "./adapters/base.js";
 import { UNOFFICIAL_MARKETPLACES } from "./models.js";
+import { buybackUrl, payoutFromQuote, unmeasuredPayout } from "./buyback.js";
 import { sourceConfig, sourceEnabled } from "./sources.js";
 import {
   computeOpportunity,
@@ -44,16 +45,7 @@ async function searchSide({
   notes,
 }) {
   const label = `${product.name} [${side}/${marketplace}]`;
-  if (!sourceEnabled(marketplace, settings)) {
-    notes.push(`${label}: skipped - switched off in the Marketplaces page`);
-    return { items: [], totalEntries: null, requests: 0, ok: false };
-  }
-  const acknowledged =
-    settings.acknowledgeAll || product.acknowledgeTerms || sourceConfig(marketplace, settings).acknowledgeTerms === true;
-  if (UNOFFICIAL_MARKETPLACES[marketplace] && !acknowledged) {
-    notes.push(
-      `${label}: skipped - ${UNOFFICIAL_MARKETPLACES[marketplace] ? "its terms are not acknowledged for this product" : "unknown marketplace"}`,
-    );
+  if (!sourceAllowed({ label, marketplace, product, settings, notes })) {
     return { items: [], totalEntries: null, requests: 0, ok: false };
   }
   try {
@@ -114,6 +106,71 @@ async function trendForProduct({ product, settings, trendFetch, notes }) {
   const scored = scoreTrends({ wikipedia, news, social, errors });
   if (!scored.measured) for (const error of errors) notes.push(`${product.name}: ${error}`);
   return scored;
+}
+
+/**
+ * The two reasons a source is not sampled: it is switched off, or its terms are not
+ * acknowledged. Shared by the search sides and the payout path, so a trade-in request
+ * is bound by exactly the same rules as a search rather than by a second copy of them.
+ */
+function sourceAllowed({ label, marketplace, product, settings, notes }) {
+  if (!sourceEnabled(marketplace, settings)) {
+    notes.push(`${label}: skipped - switched off in the Marketplaces page`);
+    return false;
+  }
+  const acknowledged =
+    settings.acknowledgeAll || product.acknowledgeTerms || sourceConfig(marketplace, settings).acknowledgeTerms === true;
+  if (UNOFFICIAL_MARKETPLACES[marketplace] && !acknowledged) {
+    notes.push(`${label}: skipped - its terms are not acknowledged for this product`);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * What Back Market would *pay* for one of these, as opposed to what it charges for one.
+ *
+ * One extra paced request, only for a product whose declared resale references include
+ * Back Market - it is a sell channel for the products the catalogue says trade there,
+ * not a question worth asking about a bicycle. A failure here is a note, never a failed
+ * run, and a missing quote is reported as unmeasured rather than as zero.
+ */
+async function payoutSide({ product, adapterFactory, settings, notes }) {
+  const label = `${product.name} [payout/backmarket]`;
+  const url = buybackUrl({
+    category: product.category,
+    slug: product.name,
+    domain: settings.backmarketDomain || undefined,
+  }).url;
+  const fallback = unmeasuredPayout({ category: product.category, keyword: product.keyword, url });
+  if (!sourceAllowed({ label, marketplace: "backmarket", product, settings, notes })) {
+    return { payout: null, requests: 0 };
+  }
+  try {
+    const adapter = adapterFactory({ marketplace: "backmarket", product, settings });
+    if (typeof adapter?.quote !== "function") {
+      notes.push(`${label}: this adapter cannot read a trade-in quote`);
+      return { payout: fallback, requests: 0 };
+    }
+    const result = await adapter.quote({ product, keyword: product.keyword });
+    const requests = adapter.requestsMade ?? 1;
+    if (result?.quote?.amount) {
+      return {
+        payout: payoutFromQuote(result.quote, { category: product.category, productName: product.name }),
+        requests,
+      };
+    }
+    notes.push(`${label}: ${result?.reason || "no quote read"}`);
+    return { payout: { ...fallback, url: result?.url || url }, requests };
+  } catch (err) {
+    notes.push(`${label}: ${short(err)}`);
+    return { payout: fallback, requests: adapterRequests(err) };
+  }
+}
+
+/** An adapter that threw still made the request it threw on. */
+function adapterRequests(err) {
+  return Number.isFinite(err?.requestsMade) ? err.requestsMade : 1;
 }
 
 /**
@@ -228,6 +285,15 @@ export async function runOpportunityScan({
       }
     }
 
+    // Asked outside the `manualResalePrice` branch on purpose: a price you typed in for
+    // the sell-it-yourself route says nothing about what a refurbisher pays.
+    let payout = null;
+    if (settings.opportunityTradeIn !== false && resaleSourcesFor(product).includes("backmarket")) {
+      const result = await payoutSide({ product, adapterFactory, settings, notes });
+      requests += result.requests;
+      payout = result.payout;
+    }
+
     const trends = await trendForProduct({ product, settings, trendFetch, notes });
     if (providerTrend) {
       try {
@@ -250,6 +316,7 @@ export async function runOpportunityScan({
         resaleListings,
         resaleBySource,
         manualResalePrice: product.manualResalePrice,
+        payout,
         trends,
         settings,
         now: now(),

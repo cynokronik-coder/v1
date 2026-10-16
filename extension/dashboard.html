@@ -493,6 +493,15 @@
           <div class="reference-value"></div>
           <div class="reference-samples"></div>
         </div>
+        <!-- What a refurbisher pays, which is not what a buyer is charged. Hidden
+             entirely when the run never asked; ".is-none" when it asked and got no
+             number, because an unmeasured payout is not a zero. -->
+        <div class="payout" hidden>
+          <div class="payout-label">Instant payout</div>
+          <div class="payout-value"></div>
+          <div class="payout-samples"></div>
+          <a class="btn payout-link" target="_blank" rel="noreferrer noopener" hidden></a>
+        </div>
         <p class="opp-confidence"></p>
         <ul class="opp-reasons"></ul>
         <div class="card-actions">

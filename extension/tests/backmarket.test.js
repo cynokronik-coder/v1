@@ -14,6 +14,7 @@ import {
   extractJsonLd,
   listingsFromJsonLd,
   parseBackMarketHtml,
+  parseBuybackQuote,
 } from "../src/core/adapters/backmarket.js";
 import { MarketplaceBlocked, MarketplaceError } from "../src/core/adapters/base.js";
 
@@ -141,4 +142,93 @@ test("a bot-protection refusal says so and points at the tab, or a manual price"
 test("an HTTP error is reported as an HTTP error", async () => {
   const client = adapter(stub("", { status: 500 }));
   await assert.rejects(() => client.search(query), /HTTP 500/);
+});
+
+// --- the trade-in quote: the other number on this site ----------------------
+//
+// A search here returns what a BUYER is charged. What Back Market PAYS is a separate
+// flow with its own page, and the two figures are far apart: "up to 385 EUR" on the
+// buyback page for a model whose refurbished asks start at 432 EUR.
+
+const BUYBACK_NAMED_FIELD = `<html><body>
+<script id="__NUXT_DATA__" type="application/json">{"props":{"buyback":{"maxBuybackPrice":385,"currency":"EUR"}}}</script>
+<h1>Vendez votre iPhone 13 Pro Max</h1></body></html>`;
+
+const BUYBACK_FRENCH_TEXT = `<html><body><p>Jusqu'à 385 € pour votre iPhone 13 Pro Max</p><p>Livraison offerte</p></body></html>`;
+
+const BUYBACK_ENGLISH_TEXT = `<html><body><p>Get up to €385 for your iPhone 13 Pro Max</p></body></html>`;
+
+const ASKING_PRICE_PAGE = `<html><head>
+<script type="application/ld+json">{"@type":"Product","name":"iPhone 13 Pro Max reconditionné","offers":{"price":"432","priceCurrency":"EUR"}}</script>
+</head><body><p>432,00 €</p><p>Prix neuf conseillé 1 159 €</p></body></html>`;
+
+test("a trade-in quote is read from a named field when the page carries one", () => {
+  const quote = parseBuybackQuote(BUYBACK_NAMED_FIELD, { url: "https://example.invalid/buyback" });
+  assert.equal(quote.amount, 385);
+  assert.equal(quote.currency, "EUR");
+  assert.equal(quote.readFrom, "named field");
+  assert.equal(quote.url, "https://example.invalid/buyback");
+});
+
+test("otherwise the headline is read, in French or in English", () => {
+  assert.equal(parseBuybackQuote(BUYBACK_FRENCH_TEXT).amount, 385);
+  assert.equal(parseBuybackQuote(BUYBACK_FRENCH_TEXT).readFrom, "page text");
+  assert.equal(parseBuybackQuote(BUYBACK_ENGLISH_TEXT).amount, 385);
+  // Thousands separators and a decimal comma are normal on this site.
+  assert.equal(parseBuybackQuote("<p>Jusqu'à 1 385,50 €</p>").amount, 1385.5);
+});
+
+test("an asking price is never mistaken for a payout: no quote framing, no number", () => {
+  // The whole point of this path. A generic price on a buyback-shaped page - or a
+  // refurbished ask in JSON-LD - must come back as no quote at all, not as a payout.
+  assert.equal(parseBuybackQuote(ASKING_PRICE_PAGE), null);
+  assert.equal(parseBuybackQuote(NUXT_PAGE), null, "the search page's own payload has no quote in it");
+  assert.equal(parseBuybackQuote(""), null);
+  assert.equal(parseBuybackQuote("<p>Jusqu'à 0 €</p>"), null, "zero is not a quote");
+});
+
+test("the quote request goes to the model's buyback page and reports where it looked", async () => {
+  const fetchImpl = stub(BUYBACK_NAMED_FIELD);
+  const client = adapter(fetchImpl);
+  const result = await client.quote({ product: { category: "phones", name: "iPhone 13 Pro Max" }, keyword: "iphone 13 pro max" });
+
+  assert.equal(fetchImpl.calls.length, 1);
+  assert.equal(fetchImpl.calls[0].url, "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13-pro-max");
+  assert.equal(result.exact, true);
+  assert.equal(result.quote.amount, 385);
+  assert.equal(result.reason, null);
+  assert.equal(client.requestsMade, 1, "the request is counted, like a search's is");
+});
+
+test("a category whose model URL is unverified is sent to the flow's home page, not a guessed path", async () => {
+  const fetchImpl = stub(BUYBACK_FRENCH_TEXT);
+  const client = adapter(fetchImpl);
+  const result = await client.quote({ product: { category: "consoles", name: "PlayStation 5" } });
+  assert.equal(fetchImpl.calls[0].url, "https://www.backmarket.fr/fr-fr/buyback/home");
+  assert.equal(result.exact, false);
+  assert.equal(result.quote.amount, 385);
+});
+
+test("an unreadable quote is a stated gap with the link, and never a thrown run", async () => {
+  const refused = adapter(stub(JSON.stringify({ url: "https://geo.captcha-delivery.com/x" }), { status: 403 }));
+  const blocked = await refused.quote({ product: { category: "phones", name: "iPhone 13" } });
+  assert.equal(blocked.quote, null);
+  assert.match(blocked.reason, /HTTP 403/);
+  assert.match(blocked.reason, /open www\.backmarket\.fr in a tab/);
+  assert.equal(blocked.url, "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13");
+
+  // A page with no quote in it: the model may not be in the buyback catalogue at all.
+  const empty = await adapter(stub("<html><body>rien</body></html>")).quote({ product: { category: "phones", name: "iPhone 13" } });
+  assert.equal(empty.quote, null);
+  assert.match(empty.reason, /no quote could be read/);
+  assert.match(empty.reason, /may not be in the buyback catalogue/);
+
+  // A search that fails loudly is a lost product; a quote that fails quietly is not.
+  const broken = await adapter({
+    async fetch() {
+      throw new Error("network down");
+    },
+  }).quote({ product: { category: "phones", name: "iPhone 13" } });
+  assert.equal(broken.quote, null);
+  assert.match(broken.reason, /could not be fetched/);
 });

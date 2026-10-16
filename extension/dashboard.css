@@ -313,9 +313,26 @@ main { display: block; padding: 18px 20px 48px; }
   border-radius: 0 8px 8px 0; padding: 9px 11px; font-size: 13px;
 }
 .reference.is-none { border-left-color: var(--line-strong); background: var(--panel-2); }
+/* A trade-in source's search results are what it CHARGES, so the reference block turns
+   amber to say "read the payout line before believing this is money in hand". */
+.reference.is-ask { border-left-color: var(--warn); background: var(--warn-soft); }
 .reference-label { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
 .reference-value { font-weight: 600; }
 .reference-samples { color: var(--muted); font-size: 12px; }
+
+/* The payout block: no `display` declaration here on purpose. Any display rule would
+   beat the user-agent's `[hidden] { display: none }` and leave the block on screen for
+   every product that has no payout - which is the bug the whole stylesheet guards
+   against (see [hidden] at the bottom of this file). */
+.payout {
+  border-left: 3px solid var(--accent); background: var(--accent-soft);
+  border-radius: 0 8px 8px 0; padding: 9px 11px; font-size: 13px; margin-top: 8px;
+}
+.payout.is-none { border-left-color: var(--line-strong); background: var(--panel-2); }
+.payout-label { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.payout-value { font-weight: 600; }
+.payout-samples { color: var(--muted); font-size: 12px; }
+.payout-link { margin-top: 8px; }
 
 .explanation { margin-top: 16px; }
 .explanation summary { cursor: pointer; font-weight: 700; font-size: 15px; }
