@@ -157,19 +157,43 @@ test("a run searches every resale reference, and says which one it quoted", asyn
         return fakeAdapter([80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190], marketplace);
       }
       if (marketplace === "ebay") return fakeAdapter([300, 310, 320, 330, 340, 350], "ebay");
-      if (marketplace === "backmarket") return fakeAdapter([199, 205, 210], "backmarket");
+      if (marketplace === "backmarket") {
+        return {
+          ...fakeAdapter([199, 205, 210], "backmarket"),
+          // The trade-in quote, which is a second request against the same site for a
+          // different question: what it would pay, not what it charges.
+          async quote() {
+            this.requestsMade += 1;
+            return { url: "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13", exact: true, quote: { amount: 150, currency: "EUR" } };
+          },
+        };
+      }
       return fakeAdapter([180, 185, 190, 195], "momox");
     },
     now: () => Date.parse("2026-02-01T12:00:00Z"),
   });
 
-  assert.deepEqual(built, ["vinted", "leboncoin", "ebay", "backmarket", "momox"]);
+  assert.deepEqual(
+    built,
+    ["vinted", "leboncoin", "ebay", "backmarket", "momox", "backmarket"],
+    "every resale reference is sampled once, and Back Market is then asked the payout question",
+  );
   const [opportunity] = opportunities;
   assert.equal(opportunity.verdict, "buy");
   assert.equal(opportunity.resaleSource, "momox");
   assert.equal(opportunity.resaleReferences.length, 3);
   assert.ok(summary.requests >= 5, "every reference is a request, and they are counted");
   assert.match(opportunity.reasons.join(" "), /momox 18[0-9]/);
+
+  // The payout is carried alongside the ask, never substituted for it: momox still priced
+  // the sell side at 190-195, and the trade-in quote is its own, much smaller number.
+  assert.ok(opportunity.resalePrice > 150, "the ask is untouched by the payout");
+  assert.equal(opportunity.payout.measured, true);
+  assert.equal(opportunity.payout.gross, 150);
+  assert.equal(opportunity.payout.net, 135, "no logistics charge is deducted for an unlisted category, and that is flagged");
+  assert.equal(opportunity.payout.logisticsKnown, false);
+  assert.match(opportunity.reasons.join(" "), /instant trade-in via Back Market trade-in/);
+  assert.match(opportunity.reasons.join(" "), /momox is an asking price, not a payout/);
 });
 
 test("a data provider can price the sell side, and is labelled as the provider", async () => {
@@ -256,7 +280,7 @@ test("per-source terms acknowledgement is enough, without ticking the global one
     },
     now: () => Date.parse("2026-02-01T12:00:00Z"),
   });
-  assert.deepEqual(built, ["vinted", "leboncoin", "ebay", "backmarket", "momox"]);
+  assert.deepEqual(built, ["vinted", "leboncoin", "ebay", "backmarket", "momox", "backmarket"]);
 });
 
 test("the request estimate counts every resale reference, not just one", () => {

@@ -37,6 +37,7 @@ import {
   opportunityCategories,
   opportunityHeadline,
   pageCounts,
+  payoutReference,
   priceSeries,
   resaleReference,
   scoreLine,
@@ -628,8 +629,33 @@ function opportunityCard(item) {
   const reference = resaleReference(item);
   const referenceBox = node.querySelector(".reference");
   referenceBox.classList.toggle("is-none", !reference.measured);
+  referenceBox.classList.toggle("is-ask", Boolean(reference.isAsk));
   node.querySelector(".reference-value").textContent = reference.value;
   node.querySelector(".reference-samples").textContent = reference.detail;
+
+  // "What is one of these worth" and "what will someone pay me for mine" are two
+  // questions, so the card answers both. A payout is only shown when the run asked, and
+  // "not measured" is stated rather than rendered as a zero - the same rule the resale
+  // reference block follows.
+  const payout = payoutReference(item);
+  const payoutBox = node.querySelector(".payout");
+  if (payout) {
+    payoutBox.hidden = false;
+    payoutBox.classList.toggle("is-none", !payout.measured);
+    node.querySelector(".payout-label").textContent = payout.label;
+    node.querySelector(".payout-value").textContent = payout.value;
+    node.querySelector(".payout-samples").textContent = payout.detail;
+    const link = node.querySelector(".payout-link");
+    if (payout.url) {
+      link.href = payout.url;
+      link.textContent = payout.urlLabel;
+      link.hidden = false;
+    } else {
+      link.hidden = true;
+    }
+  } else {
+    payoutBox.hidden = true;
+  }
 
   node.querySelector(".opp-meta").textContent =
     `${scoreLine(item)} · buy side: ${marketplaceList(item.buyMarket || [])} · keyword "${item.keyword}"`;
@@ -966,6 +992,14 @@ const SETTINGS_GROUPS = [
       { key: "opportunityMaxProducts", label: "products per run", type: "number" },
       { key: "opportunityMinMargin", label: "minimum net margin (%)", type: "percent" },
       { key: "opportunityMinConfidence", label: "minimum confidence", type: "select", options: ["low", "medium", "high"] },
+      {
+        key: "opportunityTradeIn",
+        label: "ask Back Market what it would pay (trade-in quote, one extra request per product)",
+        type: "checkbox",
+        note:
+          "a payout is a different number from the asking prices a search returns: instant money, " +
+          "no listing, no buyer - and lower. Only asked for products that list Back Market as a resale reference",
+      },
       { key: "trendWikipedia", label: "public interest (Wikimedia pageviews)", type: "checkbox", path: ["trendSources", "wikipedia"] },
       { key: "trendGdelt", label: "news attention (GDELT)", type: "checkbox", path: ["trendSources", "gdelt"] },
       { key: "socialKeywords", label: "your own hot keywords (comma or newline separated)", type: "list" },
