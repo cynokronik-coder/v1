@@ -33,6 +33,7 @@
           <button class="pagenav-tab" data-page="catalogue"><span class="ico">🗂</span>Catalogue</button>
           <button class="pagenav-tab" data-page="sources"><span class="ico">🌐</span>Marketplaces<span class="pagenav-badge" id="badge-sources"></span></button>
           <button class="pagenav-tab" data-page="providers"><span class="ico">🔑</span>API keys</button>
+          <button class="pagenav-tab" data-page="assistant"><span class="ico">🤖</span>Assistant<span class="pagenav-badge" id="badge-assistant"></span></button>
 
           <p class="rail-group">Review</p>
           <button class="pagenav-tab" data-page="history"><span class="ico">🕘</span>History</button>
@@ -312,6 +313,112 @@
         </main>
 
         <!-- ============================= HISTORY ========================== -->
+        <!-- =========================== ASSISTANT ========================== -->
+        <main id="page-assistant" hidden>
+          <section class="panel assistant-intro">
+            <h2>Hand numbers over from ChatGPT, Claude — or a person</h2>
+            <p class="hint">
+              A browser extension cannot be <em>sent</em> anything: it has no address an app can dial, and it
+              is not allowed to listen. So an assistant hands its answer over one of two ways, and both land
+              in the same place — <strong>Waiting for you</strong>, at the bottom of this page.
+            </p>
+            <ol class="setup-steps">
+              <li>
+                <strong>Paste</strong> — press “Copy the instructions” below and paste them into the chat. The
+                assistant answers with a block of JSON; paste its answer into the box. No account and no
+                server, and it works with any assistant, including one running on your own machine.
+              </li>
+              <li>
+                <strong>Live bridge</strong> — a small queue that was deployed for you. Paste its address into
+                ChatGPT as a connector once; from then on the extension checks it every 15 minutes by itself.
+              </li>
+              <li>
+                <strong>Then you decide</strong> — an import never changes a price, a payout or a verdict on
+                its own. Each number waits with the page it came from, and Apply is a click you make.
+              </li>
+            </ol>
+          </section>
+
+          <section class="panel">
+            <div class="title-block">
+              <h2>Option 1 — paste an answer</h2>
+              <p class="hint">
+                Works today, with any assistant. The instructions tell it the two kinds of number this tool
+                understands, so it cannot hand over an asking price labelled as a payout.
+              </p>
+            </div>
+            <div class="row">
+              <button id="assistant-copy-prompt" class="btn btn-primary">Copy the instructions</button>
+              <button id="assistant-import" class="btn">Import what is in the box</button>
+              <button id="assistant-clear" class="btn">Clear the box</button>
+            </div>
+            <textarea
+              id="assistant-text"
+              class="assistant-paste"
+              rows="8"
+              spellcheck="false"
+              placeholder='Paste the assistant&apos;s answer here. It should look like:&#10;{&quot;references&quot;: [{&quot;kind&quot;: &quot;trade_in_quote&quot;, &quot;product&quot;: &quot;iphone 13 128&quot;, &quot;amount&quot;: 385, &quot;source&quot;: &quot;Back Market buyback page&quot;}]}&#10;A fenced ```json block with a sentence around it is fine too.'
+            ></textarea>
+            <p class="error" id="assistant-error" hidden></p>
+            <p class="hint" id="assistant-result"></p>
+            <details>
+              <summary>What “Copy the instructions” puts on your clipboard</summary>
+              <pre class="prompt" id="assistant-prompt"></pre>
+            </details>
+          </section>
+
+          <section class="panel">
+            <div class="title-block">
+              <h2>Option 2 — the live bridge</h2>
+              <p class="hint">
+                A tiny queue on the internet that ChatGPT can post to, which this extension collects from.
+                It only ever holds numbers you asked an assistant for; it is never told anything about your
+                watches, scans or deals, so the assistant cannot read them.
+              </p>
+            </div>
+
+            <ol class="setup-steps">
+              <li>The address below is the deployed bridge. Press <strong>Generate a token</strong> once — that token is this browser's key, and it also switches collection on — then <strong>Save bridge settings</strong>.</li>
+              <li>Press <strong>Copy the MCP address</strong>. It is the bridge address with the token on the end, and it is what makes the queue yours.</li>
+              <li>In ChatGPT: <strong>Settings → Connectors</strong> (called Apps on some plans) → add a custom connector, paste that address, and choose <strong>no authentication</strong>. If your plan does not offer connectors, Option 1 above does the same job by hand.</li>
+              <li>In a chat, enable that connector for the conversation and ask it plainly, for example: <em>“use marketwatch to queue the trade-in quote you can see for an iPhone 13 128 GB”</em>.</li>
+              <li>Come back here and press <strong>Check now</strong>. The number appears under “Waiting for you”.</li>
+            </ol>
+
+            <div class="assistant-fields">
+              <label class="field grow"><span>bridge address</span><input id="bridge-url" placeholder="https://your-bridge.example" /></label>
+              <label class="field grow"><span>this install's token</span><input id="bridge-token" placeholder="press Generate a token" /></label>
+              <label class="field"><span>check every (minutes)</span><input id="bridge-poll" type="number" min="1" max="1440" /></label>
+              <label class="check"><input id="bridge-enabled" type="checkbox" /><span>collect automatically in the background</span></label>
+            </div>
+            <div class="row">
+              <button id="bridge-generate" class="btn">Generate a token</button>
+              <button id="bridge-save" class="btn btn-primary">Save bridge settings</button>
+              <button id="bridge-copy" class="btn">Copy the MCP address</button>
+              <button id="bridge-check" class="btn">Check now</button>
+              <button id="bridge-pull" class="btn">Fetch waiting items</button>
+            </div>
+            <p class="hint" id="bridge-state"></p>
+            <p class="error" id="bridge-error" hidden></p>
+          </section>
+
+          <section class="panel">
+            <div class="title-block">
+              <h2>Waiting for you</h2>
+              <p class="hint" id="inbox-hint">
+                Nothing here has changed a price yet. Applying an asking price writes the product's manual
+                resale price; applying a trade-in quote is only used when the buyback page itself gives no
+                number; applying a product adds it to the catalogue.
+              </p>
+            </div>
+            <div id="inbox"></div>
+            <p class="empty" id="inbox-empty" hidden>
+              Nothing waiting. Ask an assistant for a price, then paste its answer above — or press “Fetch
+              waiting items” if you already queued something through the bridge.
+            </p>
+          </section>
+        </main>
+
         <main id="page-history" hidden>
           <section class="opp-panel">
             <div class="opp-head">
@@ -510,6 +617,21 @@
           <button class="btn opp-watch" title="Watch this product on the buy side, so you are told when one appears">Track as a watch</button>
         </div>
       </article>
+    </template>
+
+    <template id="inbox-template">
+      <div class="inbox-row">
+        <div class="inbox-main">
+          <div class="inbox-line"></div>
+          <div class="inbox-meta"></div>
+        </div>
+        <div class="inbox-actions">
+          <select class="inbox-product" hidden></select>
+          <a class="btn inbox-link" target="_blank" rel="noreferrer noopener" hidden>Source page</a>
+          <button class="btn btn-primary inbox-apply">Apply</button>
+          <button class="btn inbox-dismiss">Dismiss</button>
+        </div>
+      </div>
     </template>
 
     <template id="history-template">

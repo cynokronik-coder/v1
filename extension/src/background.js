@@ -15,7 +15,9 @@ import { BACKMARKET_PACING } from "./core/adapters/backmarket.js";
 import { EBAY_PACING } from "./core/adapters/ebay.js";
 import { LEBONCOIN_PACING } from "./core/adapters/leboncoin.js";
 import { VINTED_PACING } from "./core/adapters/vinted.js";
-import { DEFAULT_CATALOG, normalizeCatalog } from "./core/catalog.js";
+import { importAssistant, provenanceLine } from "./core/assistant.js";
+import { BRIDGE_POLL_DEFAULT, bridgeReady, bridgeMcpUrl, createBridgeClient } from "./core/bridge.js";
+import { DEFAULT_CATALOG, findCatalogItem, normalizeCatalog } from "./core/catalog.js";
 import { buildStats } from "./core/analyzer.js";
 import { ConfigError, UNOFFICIAL_MARKETPLACES, normalizeWatch, normalizeWatches, slimListing } from "./core/models.js";
 import { replyWith } from "./core/messages.js";
@@ -42,6 +44,8 @@ import { createTabTransport } from "./core/tab-transport.js";
 
 export const ALARM_NAME = "marketwatch-scan";
 export const OPPORTUNITY_ALARM_NAME = "marketwatch-opportunities";
+/** The bridge poll. Nothing can be pushed into a worker, so it asks the queue. */
+export const BRIDGE_ALARM_NAME = "marketwatch-bridge";
 export const DEMO_WATCH = {
   name: "demo-offline",
   marketplace: "mock",
@@ -249,6 +253,23 @@ export function createController({
     return minutes;
   }
 
+  /**
+   * The bridge poll exists so an assistant's answer can arrive while the dashboard is
+   * closed. It is cleared rather than left ticking when the bridge is not configured:
+   * an alarm that can only fail is noise.
+   */
+  async function reconfigureBridgeAlarm() {
+    await store.init();
+    const ready = bridgeReady(store.settings);
+    if (!ready.ready) {
+      if (typeof chrome.alarms.clear === "function") await chrome.alarms.clear(BRIDGE_ALARM_NAME);
+      return null;
+    }
+    const minutes = clampIntervalMinutes(store.settings.bridgePollMinutes ?? BRIDGE_POLL_DEFAULT);
+    await chrome.alarms.create(BRIDGE_ALARM_NAME, { periodInMinutes: minutes, delayInMinutes: minutes });
+    return minutes;
+  }
+
   async function ensureOpportunityAlarm() {
     const existing = await chrome.alarms.get(OPPORTUNITY_ALARM_NAME);
     if (existing) return existing.periodInMinutes;
@@ -373,6 +394,9 @@ export function createController({
       const { opportunities, summary, notes } = await runOpportunityScan({
         catalog: store.data.catalog || [],
         settings,
+        // Applied trade-in quotes are a fallback for the payout line: a number this run
+        // reads from the page always wins over one that arrived by assistant.
+        references: store.appliedTradeInQuotes(),
         trendFetch: trends,
         now,
         logger,
@@ -605,6 +629,8 @@ export function createController({
       // The history page and the opportunities page read these.
       history: (data.history || []).slice(0, 200),
       catalog: data.catalog || [],
+      // What an assistant handed over and the user has not decided about yet.
+      inbox: (data.inbox || []).slice(0, 60),
       opportunities: data.opportunities || [],
       opportunityRuns: (data.opportunityRuns || []).slice(0, 20),
       baselines: Object.fromEntries(
@@ -689,6 +715,128 @@ export function createController({
     return store.appendLog({ level, message });
   }
 
+  // --- the assistant: paste import, review inbox, and the live bridge -------
+
+  /** One client per controller; `fetchImpl` is injected, so tests can fake the bridge. */
+  const bridgeClient = () => createBridgeClient({ fetchImpl });
+
+  /**
+   * Tell the bridge what happened to one of its items.
+   *
+   * Never allowed to fail the user's click: the queue is a convenience, and a bridge
+   * that is down (or was deleted) is a stale row, not a reason an apply stops working.
+   */
+  async function reportToBridge(item, status) {
+    if (item?.origin !== "bridge" || !item.bridgeId) return;
+    const ready = bridgeReady(store.settings);
+    if (!ready.ready) return;
+    try {
+      await bridgeClient().ack(store.settings, [{ id: item.bridgeId, status }]);
+    } catch (error) {
+      logger(`[bridge] could not report '${item.bridgeId}': ${error?.message || error}`);
+    }
+  }
+
+  /**
+   * Apply one inbox item - the only path from an assistant's number to the engine.
+   *
+   * Three outcomes, three writes:
+   *   resale_ask     -> the product's manual resale price, labelled as imported
+   *   trade_in_quote -> marked applied, so the payout path may fall back to it
+   *   product        -> appended to the catalogue
+   */
+  async function applyInboxItem(item) {
+    if (item.kind === "product") {
+      const catalog = normalizeCatalog([...(store.data.catalog || []), item.productDraft]);
+      await store.setCatalog(catalog);
+      const updated = await store.updateInboxItem(item.id, { status: "applied" });
+      await addLog("info", `assistant: added '${item.productDraft.name}' to the catalogue`);
+      await reportToBridge(item, "applied");
+      return { item: updated, catalog, opened: "catalogue" };
+    }
+    if (!item.product) {
+      throw new ConfigError(`"${item.keyword}" is not attached to a catalogue product yet - pick one, then apply`);
+    }
+    const product = findCatalogItem(store.data.catalog || [], item.product);
+    if (!product) throw new ConfigError(`the catalogue no longer has '${item.product}'`);
+
+    let catalog = store.data.catalog || [];
+    if (item.kind === "resale_ask") {
+      catalog = normalizeCatalog(
+        catalog.map((entry) =>
+          entry.id === product.id
+            ? {
+                ...entry,
+                // Same field the catalogue editor writes, plus where it came from: the
+                // arithmetic is identical, the claim on the card is not.
+                manualResalePrice: item.amount,
+                resaleSource: "manual",
+                manualResaleSource: "assistant",
+                manualResaleDetail: provenanceLine(item),
+              }
+            : entry,
+        ),
+      );
+      await store.setCatalog(catalog);
+    }
+    const updated = await store.updateInboxItem(item.id, { status: "applied" });
+    await addLog(
+      "info",
+      `assistant: applied a ${item.kind === "resale_ask" ? "resale price" : "trade-in quote"} to '${product.name}'`,
+    );
+    await reportToBridge(item, "applied");
+    return { item: updated, catalog };
+  }
+
+  /**
+   * Ask the bridge what is waiting. Used by the alarm and by the dashboard button.
+   *
+   * Every item is validated by the same code the paste path uses, so a bridge cannot
+   * smuggle in a shape that a pasted answer could not produce.
+   */
+  async function pullBridge({ reason = "manual" } = {}) {
+    await store.init();
+    await ensureCatalog();
+    const ready = bridgeReady(store.settings);
+    if (!ready.ready) throw new ConfigError(ready.reason || "the bridge is not set up");
+    const { items, dropped } = await bridgeClient().pull(store.settings, { limit: 20 });
+    const catalog = store.data.catalog || [];
+    const incoming = [];
+    const errors = [];
+    const warnings = [...dropped];
+
+    for (const item of items) {
+      try {
+        const payload = { ...item.payload };
+        const envelope =
+          item.kind === "product"
+            ? { products: [{ ...payload, kind: "product" }], references: [] }
+            : { references: [payload], products: [] };
+        const imported = importAssistant({ parsed: envelope, catalog, origin: "bridge" });
+        for (const entry of imported.items) incoming.push({ ...entry, bridgeId: item.id });
+        errors.push(...imported.errors);
+        warnings.push(...imported.warnings);
+      } catch (error) {
+        errors.push({ where: `item ${item.id}`, message: String(error?.message || error) });
+      }
+    }
+
+    const added = await store.addInbox(incoming);
+    const accepted = new Set(incoming.map((entry) => entry.bridgeId));
+    const results = items.map((item) =>
+      accepted.has(item.id)
+        ? { id: item.id, status: "received" }
+        : { id: item.id, status: "rejected", reason: "the extension could not read this item" },
+    );
+    try {
+      await bridgeClient().ack(store.settings, results);
+    } catch (error) {
+      warnings.push(`could not acknowledge to the bridge: ${error?.message || error}`);
+    }
+    if (added) await addLog("info", `bridge: ${added} new item(s) to review`);
+    return { pulled: items.length, added, errors, warnings, reason };
+  }
+
   async function handleMessage(message = {}) {
     const { type } = message;
     switch (type) {
@@ -760,6 +908,7 @@ export function createController({
         await store.setSettings(patch);
         await reconfigureAlarm();
         await reconfigureOpportunityAlarm();
+        await reconfigureBridgeAlarm();
         return { ok: true, settings: store.settings };
       }
       case "setDealStatus": {
@@ -767,6 +916,57 @@ export function createController({
         await updateBadge();
         return { ok: Boolean(alert), alert };
       }
+      case "importAssistant": {
+        await store.init();
+        await ensureCatalog();
+        const imported = importAssistant({
+          text: message.text,
+          parsed: message.payload ?? null,
+          catalog: store.data.catalog || [],
+          origin: message.origin === "bridge" ? "bridge" : "paste",
+        });
+        const added = await store.addInbox(imported.items);
+        await addLog(
+          "info",
+          `assistant import: ${added} new item(s) to review, ${imported.errors.length} row(s) rejected`,
+        );
+        return { ok: true, added, ...imported, inbox: store.inbox() };
+      }
+      case "decideInbox": {
+        await store.init();
+        const item = store.findInboxItem(message.id);
+        if (!item) throw new ConfigError(`no inbox item '${message.id}' (it may have been cleared)`);
+        if (message.action === "dismiss") {
+          const updated = await store.updateInboxItem(item.id, { status: "dismissed" });
+          await reportToBridge(item, "rejected");
+          return { ok: true, item: updated };
+        }
+        const applied = await applyInboxItem(item);
+        return { ok: true, ...applied };
+      }
+      case "attachInbox": {
+        await store.init();
+        const item = store.findInboxItem(message.id);
+        if (!item) throw new ConfigError(`no inbox item '${message.id}'`);
+        const product = findCatalogItem(store.data.catalog || [], message.product);
+        if (!product) throw new ConfigError(`no catalogue product '${message.product}'`);
+        const updated = await store.updateInboxItem(item.id, { product: product.id, productName: product.name });
+        return { ok: true, item: updated };
+      }
+      case "bridgeCheck": {
+        await store.init();
+        const ready = bridgeReady(store.settings);
+        if (!ready.ready) throw new ConfigError(ready.reason || "the bridge is not set up");
+        const status = await bridgeClient().status(store.settings);
+        return {
+          ok: true,
+          ...status,
+          mcpUrl: bridgeMcpUrl(store.settings),
+          pollMinutes: clampIntervalMinutes(store.settings.bridgePollMinutes ?? BRIDGE_POLL_DEFAULT),
+        };
+      }
+      case "bridgePull":
+        return pullBridge({ reason: message.reason || "manual" });
       case "openListing": {
         await chrome.tabs.create({ url: message.url });
         return { ok: true };
@@ -820,6 +1020,8 @@ export function createController({
     handleMessage,
     reconfigureAlarm,
     reconfigureOpportunityAlarm,
+    reconfigureBridgeAlarm,
+    pullBridge,
     ensureAlarm,
     ensureOpportunityAlarm,
     nextRunAt,
@@ -861,6 +1063,7 @@ if (isBrowser) {
     await controller.ensureCatalog();
     await controller.reconfigureAlarm();
     await controller.reconfigureOpportunityAlarm();
+    await controller.reconfigureBridgeAlarm();
     await controller.runScan({ force: true, reason: "install" });
     await chrome.tabs.create({ url: chrome.runtime.getURL("dashboard.html") });
   });
@@ -869,11 +1072,22 @@ if (isBrowser) {
     await ready;
     await controller.reconfigureAlarm();
     await controller.reconfigureOpportunityAlarm();
+    await controller.reconfigureBridgeAlarm();
   });
 
   chrome.alarms.onAlarm.addListener(async (alarm) => {
-    if (alarm.name !== ALARM_NAME && alarm.name !== OPPORTUNITY_ALARM_NAME) return;
+    if (![ALARM_NAME, OPPORTUNITY_ALARM_NAME, BRIDGE_ALARM_NAME].includes(alarm.name)) return;
     await ready;
+    if (alarm.name === BRIDGE_ALARM_NAME) {
+      // A queue that cannot be reached is logged and retried next interval; it must not
+      // turn into an unhandled rejection in the worker.
+      try {
+        await controller.pullBridge({ reason: "schedule" });
+      } catch (error) {
+        console.warn("[marketwatch] bridge poll failed:", error?.message || error);
+      }
+      return;
+    }
     if (alarm.name === OPPORTUNITY_ALARM_NAME) await controller.runOpportunities({ reason: "schedule" });
     else await controller.runScan({ reason: "schedule" });
   });

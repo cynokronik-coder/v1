@@ -1,0 +1,14 @@
+# Local runs only: `npx wrangler dev --local`.
+#
+# The deployed bridge is published through the Sites tooling, not `wrangler deploy`,
+# so this file exists to exercise the *same worker* in workerd against a local D1
+# before anything is uploaded. The database id is a placeholder that only local mode
+# accepts.
+name = "marketwatch-bridge"
+main = "src/worker.js"
+compatibility_date = "2026-10-18"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "marketwatch-bridge"
+database_id = "00000000-0000-0000-0000-000000000000"

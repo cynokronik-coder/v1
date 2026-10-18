@@ -1,0 +1,5 @@
+{
+  "entrypoint": "index.js",
+  "compatibilityDate": "2026-10-18",
+  "modules": [{ "name": "index.js", "type": "esm", "path": "./src/worker.js" }]
+}
