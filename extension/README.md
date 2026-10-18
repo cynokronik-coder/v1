@@ -28,7 +28,7 @@ need an Xcode build; neither is worth pretending otherwise.
 After updating the code, come back to `chrome://extensions` and press **Reload** on the
 card, then reopen the dashboard.
 
-## The eight tools
+## The nine tools
 
 One tool per page, listed in the rail down the left-hand side, which stays put while a
 page scrolls. Every tool is reachable from the rail at any time.
@@ -41,6 +41,7 @@ page scrolls. Every tool is reachable from the rail at any time.
 | **Catalogue** | The products an opportunities run samples: keyword, price band, which markets to buy on, which resale reference to price against, and an optional manual resale price. |
 | **Marketplaces** | Every marketplace the engine knows, how it is reached, what its terms say, and a switch for each one. Plus the optional data providers. |
 | **API keys** | Step-by-step setup for each key - the eBay keyset and each data provider - naming the exact Settings field it goes in and how to prove it works. Nothing here is required. |
+| **Assistant** | Hand numbers over from ChatGPT, Claude or any MCP client - by pasting its answer, or through a small hosted queue - and review them before anything is applied. Optional, and nothing else depends on it. |
 | **History** | Every scan pass and every opportunities run, newest first, plus a price line per watch so you can see a market move. |
 | **Settings** | Intervals, transports, fees and thresholds, trend sources, your own hot keywords, and the fields the keys from the API keys page are pasted into. |
 
@@ -233,6 +234,86 @@ a full run will cost in requests before you press the button.
 One run is slow on purpose: page sources pace themselves at 6-12 seconds per request, and
 the run stops at a request budget you can see and change (`opportunityMaxRequests`).
 
+## Asking an assistant for numbers
+
+An assistant is good at one thing this tool is not: reading a page that defeated the
+parsers. A buy-back flow that only shows its quote after you answer six condition
+questions, a screenshot of a Vinted search, a retailer page that changed its markup -
+the numbers exist, they are just not in a shape any adapter can reach. An assistant can
+put them in a shape this tool reads.
+
+**It cannot push anything into a browser extension.** An MV3 service worker has no
+listening socket and is not allowed to open one; the dashboard is a page, not a server.
+So there are exactly two ways in, and both end up in the same review inbox.
+
+### Option 1 - paste (works today, with any assistant)
+
+1. Open the **Assistant** page and press **Copy the instructions**.
+2. Paste them into the chat, then ask your question (*"what does Back Market offer for an
+   iPhone 13 128 GB?"*, *"read this page and give me the asking prices"*).
+3. The assistant answers with one `json` block. Paste the whole answer into the box -
+   the prose around the block is fine - and press **Import what is in the box**.
+4. Each number appears under **Waiting for you**. Apply it, attach it to a different
+   catalogue product, or dismiss it.
+
+The instructions are generated from this build's own registry, so the marketplace names
+the assistant is told it may use are the ones the validator accepts. That is the usual
+reason a pasted answer fails: the model invents `wallapop`, and the import says so
+instead of storing it.
+
+### Option 2 - the live bridge (nothing to copy afterwards)
+
+A deployed queue that an MCP client can post to, which this extension checks on an alarm.
+The default address in Settings is the bridge deployed for this project; clear it and use
+Option 1 if you would rather not use a server at all.
+
+1. On the **Assistant** page, press **Generate a token** (this browser's key), then
+   **Save bridge settings**.
+2. Press **Copy the MCP address** - that is the bridge address with the token on the end.
+3. In ChatGPT: **Settings → Connectors** (called Apps on some plans) → add a custom
+   connector, paste that address, authentication **none**. If your plan has no connectors,
+   Option 1 does the same job by hand.
+4. Enable the connector for the conversation and ask: *"use marketwatch to queue the
+   trade-in quote you can see for an iPhone 13 128 GB"*.
+5. Press **Check now**. The number appears in the inbox.
+
+The bridge exposes four MCP tools - `list_marketplaces`, `queue_reference`,
+`queue_product`, `queue_status` - and holds nothing else. It is never told about your
+watches, scans or deals, so the assistant cannot read them; there is no read path from
+this extension to the bridge at all. See `bridge/README.md` for the worker itself.
+
+### What importing can and cannot do
+
+Every entry is one of three kinds, and the kind decides what Apply means:
+
+| Kind | What it is | Apply does |
+|---|---|---|
+| `resale_ask` | what a buyer is **charged** | writes the product's manual resale price, labelled *imported* on the card |
+| `trade_in_quote` | what a refurbisher **pays you** | marks it applied; the payout line uses it **only when the buyback page gave nothing** |
+| `product` | a catalogue entry | appends it to the catalogue |
+
+Three rules are worth stating plainly, because they are the reason this is an inbox and
+not an import button:
+
+- **No import changes anything by itself.** Every row waits for a click, so a wrong number
+  cannot become a verdict while you are not looking.
+- **An asking price can never be stored as a payout.** The two kinds are separate fields,
+  a reference that says `"kind": "price"` is refused with the two options named, and the
+  card keeps saying which one it is showing.
+- **A number with no catalogue product is not guessed at.** If `leica q2` is not in the
+  catalogue, the row asks you to pick a product; Apply stays disabled until you do.
+
+### Deploying your own bridge
+
+The worker is one file with no dependencies (`bridge/src/worker.js`), a D1 table it
+creates itself, and one command to run locally:
+
+```bash
+cd bridge && npx wrangler dev --local   # then: node tests/smoke.mjs http://127.0.0.1:8787 <token>
+```
+
+`bridge/README.md` has the endpoints, the schema and the security model.
+
 ## Adding a watch
 
 ```yaml
@@ -343,6 +424,7 @@ stop.
 | `cookies` | Reading the marketplace's own `anon_id` cookie - the Vinted web API rejects requests without it. Nothing is stored or sent anywhere. |
 | `scripting` | Running one fetch (or reading the current document) inside a tab you already have open on that marketplace. Nothing is injected into any other page. |
 | host access to the registered marketplaces, `api.ebay.com`, and the four provider hosts | Only the sites in `src/core/sources.js` plus the providers you configure. `tests/manifest.test.js` fails if a registry host is missing from the manifest. |
+| host access to `*.freebuff.page` | The bridge deployed for this project, if you switch it on. The bridge answers a token and nothing else, and it deliberately sends no CORS headers - extension host access is what makes the poll possible without opening the queue to any browser page. Pointing at your own deployment means adding its host here. |
 
 Nothing is read from or written to any other site, and no data leaves your machine except
 the request you asked for.

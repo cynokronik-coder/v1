@@ -174,6 +174,53 @@ function adapterRequests(err) {
 }
 
 /**
+ * The trade-in quote an assistant handed over for this product, if one was applied.
+ *
+ * Only used when the page itself gave nothing to read, and never instead of a number
+ * this run actually measured: the page wins, because it is the seller's own quote.
+ */
+function appliedQuote(product, references) {
+  return (
+    (references || []).find(
+      (entry) =>
+        entry?.kind === "trade_in_quote" &&
+        entry.status === "applied" &&
+        entry.product === product.id &&
+        Number.isFinite(entry.amount),
+    ) || null
+  );
+}
+
+/**
+ * Fall back to an imported quote when the buyback page gave nothing.
+ *
+ * This is deliberately a fallback and not a preference: the whole point of the payout
+ * path is that the number comes from the buyer's own flow. An imported one is marked
+ * `origin: "assistant"`, so the card can say where it came from instead of implying
+ * this run read it.
+ */
+export function withAssistantQuote({ payout, product, references = [], notes = [] } = {}) {
+  if (payout?.measured) return payout;
+  const quote = appliedQuote(product, references);
+  if (!quote) return payout;
+  const imported = payoutFromQuote(
+    {
+      amount: quote.amount,
+      currency: quote.currency || "EUR",
+      url: quote.url || payout?.url || null,
+      readFrom: `quote supplied by your assistant${quote.source ? ` from ${quote.source}` : ""}`,
+    },
+    { category: product.category, productName: product.name },
+  );
+  if (!imported) return payout;
+  notes.push(
+    `${product.name} [payout/assistant]: used the trade-in quote you imported ` +
+      `(${quote.amount} ${quote.currency || "EUR"}) - the page itself gave nothing to read`,
+  );
+  return { ...imported, origin: "assistant" };
+}
+
+/**
  * Where the sell side gets priced. `resaleSources` is the multi-reference form;
  * `resaleSource` is the single one the product has always had, and `manual` means
  * the user read a price somewhere and typed it in.
@@ -196,6 +243,8 @@ export function resaleSourcesFor(product = {}) {
 export async function runOpportunityScan({
   catalog = [],
   settings = {},
+  // Applied contributions from the assistant inbox (an imported trade-in quote, today).
+  references = [],
   adapterFactory,
   trendFetch = null,
   providerResale = null,
@@ -293,6 +342,9 @@ export async function runOpportunityScan({
       requests += result.requests;
       payout = result.payout;
     }
+    // An imported quote is the fallback, not the reference: a number this run read from
+    // the seller's own flow always wins over one an assistant transcribed.
+    payout = withAssistantQuote({ payout, product, references, notes });
 
     const trends = await trendForProduct({ product, settings, trendFetch, notes });
     if (providerTrend) {

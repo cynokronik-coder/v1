@@ -24,6 +24,9 @@ export const LIMITS = {
   history: 400,
   opportunityRuns: 50,
   opportunities: 80,
+  // Numbers an assistant handed over, waiting for a click. Small on purpose: this is
+  // a review queue, not a price archive.
+  inbox: 60,
 };
 
 export const DEFAULT_SETTINGS = {
@@ -69,6 +72,19 @@ export const DEFAULT_SETTINGS = {
   googleShoppingResale: false,
   // Apify as the fallback when a marketplace has no open tab and no usable URL.
   useApifyFallback: false,
+
+  // --- the AI bridge -------------------------------------------------------
+  // An extension cannot be sent anything, so the bridge is a queue this extension
+  // pulls. `bridgeUrl` is the deployment, `bridgeToken` is this install's key (it is
+  // also the path of the MCP address you paste into the assistant). Off until asked.
+  bridgeEnabled: false,
+  // The bridge that was deployed for this build (see bridge/README.md). It is a public
+  // endpoint that holds nothing but what an assistant queues for a token; each install
+  // gets its own token, so sharing one deployment is fine. Replace it with your own
+  // address if you deploy your own copy, or clear it and use the paste box instead.
+  bridgeUrl: "https://site-988972e0932e4829906bd7ecd26188c9.freebuff.page",
+  bridgeToken: "",
+  bridgePollMinutes: 15,
 };
 
 export function defaultState() {
@@ -84,6 +100,8 @@ export function defaultState() {
     catalog: [],
     opportunities: [],
     opportunityRuns: [],
+    // What an assistant said, before the user decided what to do with it.
+    inbox: [],
     log: [],
   };
 }
@@ -409,6 +427,54 @@ export class Store {
       );
       return state.opportunityRuns.length;
     });
+  }
+
+  // --- the assistant inbox --------------------------------------------------
+
+  /**
+   * Queue assistant-supplied items for review. Nothing here reaches a price or a
+   * verdict until `updateInboxItem` marks it applied, which is the only reason the
+   * inbox exists: an import cannot change an answer on its own.
+   */
+  addInbox(items = []) {
+    return this.mutate((state) => {
+      const known = new Set((state.inbox || []).map((item) => item.id));
+      const added = items.filter((item) => item?.id && !known.has(item.id));
+      state.inbox = this._cap([...added, ...(state.inbox || [])], "inbox");
+      return added.length;
+    });
+  }
+
+  inbox({ status = null, limit = 60 } = {}) {
+    const items = this.data.inbox || [];
+    const filtered = status ? items.filter((item) => item.status === status) : items;
+    return filtered.slice(0, limit);
+  }
+
+  findInboxItem(id) {
+    return (this.data.inbox || []).find((item) => item.id === id) || null;
+  }
+
+  updateInboxItem(id, patch = {}) {
+    return this.mutate((state) => {
+      const item = (state.inbox || []).find((entry) => entry.id === id);
+      if (!item) return null;
+      Object.assign(item, patch, { decidedAt: new Date().toISOString() });
+      return item;
+    });
+  }
+
+  removeInboxItem(id) {
+    return this.mutate((state) => {
+      const before = (state.inbox || []).length;
+      state.inbox = (state.inbox || []).filter((item) => item.id !== id);
+      return before - state.inbox.length;
+    });
+  }
+
+  /** Applied trade-in quotes, for the payout path to fall back on. */
+  appliedTradeInQuotes() {
+    return (this.data.inbox || []).filter((item) => item.kind === "trade_in_quote" && item.status === "applied");
   }
 
   /** Keep a short human-readable log: the dashboard shows it as "what happened". */

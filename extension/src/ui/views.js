@@ -80,10 +80,17 @@ export function resaleReference(opportunity = {}) {
     };
   }
   if (Number.isFinite(opportunity.manualResalePrice)) {
+    // A hand-supplied price now says *whose* hand. A number imported from an assistant
+    // and one typed into the catalogue are the same arithmetic and a different claim, so
+    // the card names the difference instead of flattening both into "you typed it in".
+    const imported = opportunity.manualResaleSource === "assistant";
     return {
       measured: true,
-      value: `${money(opportunity.manualResalePrice, currency)} — the price you typed in`,
-      detail: "manual reference from the catalogue: it overrides anything the marketplaces say",
+      value: `${money(opportunity.manualResalePrice, currency)} — ${imported ? "the price you imported from an assistant" : "the price you typed in"}`,
+      detail: imported
+        ? `read by an assistant${opportunity.manualResaleDetail ? ` from ${opportunity.manualResaleDetail}` : ""} · ` +
+          "it overrides anything the marketplaces say, so check it against the reference below"
+        : "manual reference from the catalogue: it overrides anything the marketplaces say",
     };
   }
   if (Number.isFinite(opportunity.resalePrice)) {
@@ -162,9 +169,13 @@ export function payoutReference(opportunity = {}) {
         `(${signed(payout.profitAbs, currency)}, ${percent(payout.marginPct ?? 0, 1)})`,
     );
   }
+  // A quote that came from an assistant rather than from this run's read of the page is
+  // labelled as such: it is still a real number, but it was obtained by someone else.
+  const imported = payout.origin === "assistant";
+  if (imported) parts.push(`${payout.readFrom || "quote supplied by your assistant"} - the buyback page gave nothing to read`);
   return {
     measured: true,
-    label,
+    label: imported ? `${label} (imported)` : label,
     value: `${money(payout.gross, currency)} quote → ${money(payout.net, currency)} net`,
     detail: parts.join(" · "),
     url: payout.url || null,
