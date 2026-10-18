@@ -46,6 +46,8 @@ import {
   visibleOpportunities,
 } from "./ui/views.js";
 import { blankWatchForm, formToWatch, watchToForm } from "./ui/watch-form.js";
+import { assistantPrompt, inboxLine } from "./core/assistant.js";
+import { bridgeMcpUrl, bridgeReady } from "./core/bridge.js";
 import { unwrap } from "./core/messages.js";
 
 const $ = (id) => document.getElementById(id);
@@ -226,6 +228,7 @@ function render() {
   renderApiSetup();
   renderPriceMarkets();
   renderSettings();
+  renderAssistant();
   renderBadges();
 }
 
@@ -237,6 +240,11 @@ function renderBadges() {
   // number on this page that is worth acting on.
   const blocked = (state.sources || []).filter((source) => source.enabled && /needs|off \(terms\)/.test(source.status)).length;
   $("badge-sources").textContent = blocked ? String(blocked) : "";
+  // The Assistant badge is the number of numbers waiting for a decision, which is the
+  // only reason to visit that page.
+  const pending = (state.inbox || []).filter((item) => item.status === "pending").length;
+  const assistant = $("badge-assistant");
+  if (assistant) assistant.textContent = pending ? String(pending) : "";
 }
 
 // --- header ----------------------------------------------------------------
@@ -959,6 +967,301 @@ function renderHistory() {
     spark.append(box);
   }
   if (!drawn) spark.append(el("p", { class: "hint", text: "Two scans of the same watch are needed before a line means anything." }));
+}
+
+// --- the assistant: paste import, bridge setup, review inbox ----------------
+
+/** What each kind of inbox row becomes when you press Apply. */
+const INBOX_APPLY = {
+  resale_ask: "Use as the resale price",
+  trade_in_quote: "Use for the payout line",
+  product: "Add to the catalogue",
+};
+
+const INBOX_KIND = {
+  resale_ask: "asking price",
+  trade_in_quote: "trade-in payout",
+  product: "new product",
+};
+
+/** Last settings signature painted into the bridge fields, so a poll cannot undo typing. */
+let bridgeSignature = null;
+
+const assistantPromptText = () => assistantPrompt({ catalog: state?.catalog || [] });
+
+/**
+ * The Assistant page.
+ *
+ * Three things are rendered here and none of them rebuild anything the user is
+ * typing into: the prompt is a read-only <pre>, the bridge fields only repaint when the
+ * stored settings actually changed, and the paste box is never touched at all except
+ * by the Clear button.
+ */
+function renderAssistant() {
+  if (!$("inbox")) return;
+  const prompt = $("assistant-prompt");
+  if (prompt) prompt.textContent = assistantPromptText();
+  renderBridgeFields();
+  renderInbox();
+}
+
+function renderBridgeFields() {
+  const settings = state.settings || {};
+  const ready = bridgeReady(settings);
+  const pending = (state.inbox || []).filter((item) => item.status === "pending").length;
+  $("bridge-state").textContent = ready.ready
+    ? `ready · checking every ${Math.max(1, Math.round(Number(settings.bridgePollMinutes) || 15))} minute(s)` +
+      ` · ${pending} item(s) waiting`
+    : `not collecting yet · ${ready.reason}`;
+
+  const signature = JSON.stringify([
+    settings.bridgeUrl ?? "",
+    settings.bridgeToken ?? "",
+    settings.bridgePollMinutes ?? "",
+    Boolean(settings.bridgeEnabled),
+  ]);
+  // Only repaint when the stored values moved: a 5 s poll must not wipe out a URL that
+  // has been half-typed or a token that was pasted but not saved yet.
+  if (signature === bridgeSignature) return;
+  bridgeSignature = signature;
+  const set = (id, value) => {
+    const node = $(id);
+    if (node && document.activeElement !== node) node.value = value;
+  };
+  set("bridge-url", settings.bridgeUrl || "");
+  set("bridge-token", settings.bridgeToken || "");
+  set("bridge-poll", String(settings.bridgePollMinutes ?? 15));
+  $("bridge-enabled").checked = Boolean(settings.bridgeEnabled);
+}
+
+function renderInbox() {
+  const box = $("inbox");
+  if (!box) return;
+  const pending = (state.inbox || []).filter((item) => item.status === "pending");
+  box.replaceChildren();
+  $("inbox-empty").hidden = pending.length > 0;
+  for (const item of pending) box.append(inboxRow(item));
+}
+
+function inboxRow(item) {
+  const node = $("inbox-template").content.firstElementChild.cloneNode(true);
+  node.dataset.inbox = item.id;
+  node.querySelector(".inbox-line").textContent = inboxLine(item);
+
+  const meta = [];
+  meta.push(item.origin === "bridge" ? "arrived through the live bridge" : "pasted here");
+  if (item.kind !== "product") meta.push(INBOX_KIND[item.kind] || item.kind);
+  if (item.observedAt) meta.push(`seen ${item.observedAt}`);
+  if (item.productName) meta.push(`catalogue product: ${item.productName}`);
+  if (item.note) meta.push(item.note);
+  // The distinction this whole path exists to protect, restated where the decision is
+  // made rather than only on the card.
+  if (item.kind === "trade_in_quote") meta.push("a payout, not a resale price");
+  if (item.kind === "resale_ask") meta.push("an asking price: what a buyer is charged");
+  node.querySelector(".inbox-meta").textContent = meta.join(" · ");
+
+  const link = node.querySelector(".inbox-link");
+  if (item.url) {
+    link.href = item.url;
+    link.hidden = false;
+  }
+
+  // An assistant is allowed to name a product the catalogue does not have. It is not
+  // allowed to guess which one it meant, so the user picks.
+  const select = node.querySelector(".inbox-product");
+  if (item.kind !== "product" && !item.product) {
+    select.hidden = false;
+    select.append(el("option", { value: "", text: "pick a catalogue product…" }));
+    for (const product of state.catalog || []) select.append(el("option", { value: product.id, text: product.name }));
+    select.addEventListener("change", async () => {
+      if (!select.value) return;
+      try {
+        await send({ type: "attachInbox", id: item.id, product: select.value });
+        await refresh();
+        toast(`attached to ${select.options[select.selectedIndex]?.text || select.value}`, "good");
+      } catch (err) {
+        toast(String(err.message || err), "bad");
+      }
+    });
+  }
+
+  const apply = node.querySelector(".inbox-apply");
+  apply.textContent = INBOX_APPLY[item.kind] || "Apply";
+  apply.disabled = item.kind !== "product" && !item.product;
+  apply.title = apply.disabled ? "Pick the catalogue product this number is about first" : "";
+  apply.addEventListener("click", async () => {
+    apply.disabled = true;
+    try {
+      const result = await send({ type: "decideInbox", id: item.id, action: "apply" });
+      await refresh();
+      toast(
+        result?.opened === "catalogue"
+          ? "added to the catalogue - it is measured on the next run"
+          : "applied - the next analysis run uses it",
+        "good",
+      );
+    } catch (err) {
+      apply.disabled = false;
+      toast(String(err.message || err), "bad");
+    }
+  });
+
+  node.querySelector(".inbox-dismiss").addEventListener("click", async () => {
+    try {
+      await send({ type: "decideInbox", id: item.id, action: "dismiss" });
+      await refresh();
+      toast("dismissed");
+    } catch (err) {
+      toast(String(err.message || err), "bad");
+    }
+  });
+  return node;
+}
+
+async function doAssistantImport() {
+  const box = $("assistant-text");
+  const error = $("assistant-error");
+  const result = $("assistant-result");
+  error.hidden = true;
+  const text = String(box.value || "").trim();
+  if (!text) {
+    error.hidden = false;
+    error.textContent = "paste the assistant's answer into the box first";
+    return;
+  }
+  const button = $("assistant-import");
+  button.disabled = true;
+  try {
+    const imported = await send({ type: "importAssistant", text });
+    await refresh();
+    const lines = [imported.added ? `${imported.added} item(s) waiting below` : "nothing new - already imported"];
+    if (imported.errors?.length) {
+      lines.push(`${imported.errors.length} row(s) rejected: ${imported.errors.map((entry) => `${entry.where} — ${entry.message}`).join("; ")}`);
+    }
+    if (imported.warnings?.length) lines.push(imported.warnings.slice(0, 3).join("; "));
+    result.textContent = lines.join("  ·  ");
+    if (imported.added) box.value = "";
+    toast(imported.added ? "imported - review it below" : "nothing new to import", imported.added ? "good" : "");
+  } catch (err) {
+    error.hidden = false;
+    error.textContent = String(err.message || err).replace(/^Error: /, "");
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function bridgePatch() {
+  return {
+    bridgeUrl: $("bridge-url").value.trim(),
+    bridgeToken: $("bridge-token").value.trim(),
+    bridgePollMinutes: Number($("bridge-poll").value) || 15,
+    bridgeEnabled: $("bridge-enabled").checked,
+  };
+}
+
+async function saveBridge() {
+  const error = $("bridge-error");
+  try {
+    await send({ type: "setSettings", settings: bridgePatch() });
+    error.hidden = true;
+    await refresh();
+    toast("bridge settings saved", "good");
+  } catch (err) {
+    error.hidden = false;
+    error.textContent = String(err.message || err).replace(/^Error: /, "");
+  }
+}
+
+/** A token is this install's capability: 24 random bytes, hex, generated here. */
+function freshToken() {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return [...bytes].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+async function checkBridge() {
+  const error = $("bridge-error");
+  const button = $("bridge-check");
+  button.disabled = true;
+  try {
+    const status = await send({ type: "bridgeCheck" });
+    error.hidden = true;
+    toast(`bridge answered: ${status.pending} waiting, ${status.applied} applied already`, "good");
+  } catch (err) {
+    error.hidden = false;
+    error.textContent = String(err.message || err).replace(/^Error: /, "");
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function pullBridgeNow() {
+  const error = $("bridge-error");
+  const button = $("bridge-pull");
+  button.disabled = true;
+  try {
+    const pulled = await send({ type: "bridgePull", reason: "dashboard" });
+    error.hidden = true;
+    await refresh();
+    const notes = [`${pulled.pulled} item(s) checked, ${pulled.added} new`];
+    if (pulled.errors?.length) notes.push(pulled.errors.map((entry) => `${entry.where} — ${entry.message}`).join("; "));
+    if (pulled.warnings?.length) notes.push(pulled.warnings.slice(0, 3).join("; "));
+    toast(notes.join("  ·  "), pulled.added ? "good" : "");
+  } catch (err) {
+    error.hidden = false;
+    error.textContent = String(err.message || err).replace(/^Error: /, "");
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function copyMcpAddress() {
+  const url = bridgeMcpUrl(state.settings || {});
+  if (!url) {
+    toast("save the bridge address and a token first", "bad");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast("MCP address copied - paste it into the connector", "good");
+  } catch {
+    // No clipboard permission: show it instead of pretending it worked.
+    $("bridge-state").textContent = url;
+    toast("could not use the clipboard - the address is shown above the buttons", "bad");
+  }
+}
+
+function wireAssistant() {
+  $("assistant-copy-prompt").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(assistantPromptText());
+      toast("instructions copied - paste them into the chat, then paste the answer back here", "good");
+    } catch {
+      const details = document.querySelector("#page-assistant details");
+      if (details) details.open = true;
+      toast("could not use the clipboard - the instructions are open below the box", "bad");
+    }
+  });
+  $("assistant-import").addEventListener("click", doAssistantImport);
+  $("assistant-clear").addEventListener("click", () => {
+    $("assistant-text").value = "";
+    $("assistant-result").textContent = "";
+    $("assistant-error").hidden = true;
+  });
+  $("bridge-generate").addEventListener("click", async () => {
+    // Regenerating the token revokes the old one: say so before it is saved.
+    if ($("bridge-token").value.trim()) toast("new token: the old one stops working as soon as this saves");
+    $("bridge-token").value = freshToken();
+    // Asking for a token is asking for the bridge. Leaving "collect automatically" off
+    // here made the very next step (Check now) fail with "switched off", which is a
+    // trap for anyone following the page's own instructions.
+    $("bridge-enabled").checked = true;
+    await saveBridge();
+  });
+  $("bridge-save").addEventListener("click", saveBridge);
+  $("bridge-check").addEventListener("click", checkBridge);
+  $("bridge-pull").addEventListener("click", pullBridgeNow);
+  $("bridge-copy").addEventListener("click", copyMcpAddress);
 }
 
 // --- settings --------------------------------------------------------------
@@ -1688,6 +1991,7 @@ function wire() {
   $("check-all-sources").addEventListener("click", doSourceCheckAll);
   $("save-catalog").addEventListener("click", saveCatalog);
   $("save-settings").addEventListener("click", saveSettings);
+  wireAssistant();
 
   for (const tab of document.querySelectorAll(".pagenav-tab")) {
     tab.addEventListener("click", () => showPage(tab.dataset.page));

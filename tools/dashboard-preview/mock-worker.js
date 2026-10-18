@@ -15,6 +15,7 @@
  */
 
 import { ok } from "/src/core/messages.js";
+import { importAssistant } from "/src/core/assistant.js";
 import { DEFAULT_CATALOG } from "/src/core/catalog.js";
 import { DEFAULT_SETTINGS } from "/src/core/storage.js";
 import {
@@ -160,7 +161,48 @@ function opportunity(over = {}) {
   };
 }
 
+/**
+ * The assistant inbox, kept mutable so the review buttons do something in the preview.
+ * Two rows on purpose: one payout that is matched to a product, and one asking price
+ * for something the catalogue does not have - which is the case that needs the picker.
+ */
+const inbox = [
+  {
+    id: "in-demo-quote",
+    kind: "trade_in_quote",
+    status: "pending",
+    origin: "bridge",
+    keyword: "iphone 13",
+    product: "iphone-13",
+    productName: "iPhone 13 (128 / 256 Go)",
+    amount: 385,
+    currency: "EUR",
+    source: "Back Market buyback page",
+    url: "https://www.backmarket.fr/fr-fr/buyback/m/smartphone/iphone-13",
+    note: "trade-in quote for a 128 GB iPhone 13 in good condition",
+    observedAt: "2026-10-18",
+    receivedAt: new Date(Date.now() - 20 * 60000).toISOString(),
+  },
+  {
+    id: "in-demo-unmatched",
+    kind: "resale_ask",
+    status: "pending",
+    origin: "paste",
+    keyword: "leica q2",
+    product: null,
+    productName: null,
+    amount: 2400,
+    currency: "EUR",
+    source: "eBay",
+    url: null,
+    note: "median asking price on eBay, body only",
+    observedAt: "2026-10-17",
+    receivedAt: new Date(Date.now() - 60 * 60000).toISOString(),
+  },
+];
+
 const state = () => ({
+  inbox: [...inbox],
   watches: [
     {
       name: "pixel 8",
@@ -305,6 +347,36 @@ window.chrome = {
           return ok({ ok: true, summary: { comparables: 61, deals: 3 } });
         case "scanOpportunities":
           return ok({ ok: true, summary: { products: 12, requests: 96 }, opportunities: state().opportunities });
+        // Real parsing, so the preview shows exactly what the extension would accept -
+        // including the two-kind rule and the per-row error messages.
+        case "importAssistant": {
+          const imported = importAssistant({ text: message.text, catalog: state().catalog, origin: "paste" });
+          let added = 0;
+          for (const item of imported.items) {
+            if (inbox.some((entry) => entry.id === item.id)) continue;
+            inbox.unshift(item);
+            added += 1;
+          }
+          return ok({ ok: true, added, errors: imported.errors, warnings: imported.warnings });
+        }
+        case "decideInbox": {
+          const item = inbox.find((entry) => entry.id === message.id);
+          if (item) item.status = message.action === "dismiss" ? "dismissed" : "applied";
+          return ok({ ok: true, item, opened: item?.kind === "product" ? "catalogue" : undefined });
+        }
+        case "attachInbox": {
+          const item = inbox.find((entry) => entry.id === message.id);
+          const product = state().catalog.find((entry) => entry.id === message.product);
+          if (item && product) {
+            item.product = product.id;
+            item.productName = product.name;
+          }
+          return ok({ ok: true, item });
+        }
+        case "bridgePull":
+          return ok({ pulled: 0, added: 0, errors: [], warnings: ["this page is the offline preview: there is no bridge to ask"] });
+        case "bridgeCheck":
+          throw new Error("this page is the offline preview: the live bridge cannot be reached from here");
         case "setWatches":
         case "setCatalog":
         case "setSettings":

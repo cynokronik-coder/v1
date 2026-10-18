@@ -462,6 +462,52 @@ main { display: block; padding: 18px 20px 48px; }
 .setup-keys code { color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
 .setup-legal { margin-top: 12px; padding-top: 11px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 12.5px; line-height: 1.55; }
 
+/* --- the assistant page -------------------------------------------------- */
+
+.assistant-intro { max-width: 940px; }
+.assistant-paste {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--text);
+  font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  resize: vertical;
+}
+.assistant-paste:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.prompt {
+  margin: 10px 0 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+.assistant-fields { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 14px; }
+.assistant-fields .field.grow { flex: 1 1 260px; }
+
+/*
+ * One row per number waiting for a decision. `align-items: flex-start` because a row
+ * whose actions wrap (a long product name plus a select) should keep its buttons at
+ * the top rather than floating to the middle of a three-line sentence.
+ */
+.inbox-row {
+  display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+  border-top: 1px solid var(--line); padding: 12px 0; flex-wrap: wrap;
+}
+.inbox-row:first-child { border-top: 0; padding-top: 0; }
+.inbox-main { min-width: 0; flex: 1 1 360px; }
+.inbox-line { font-size: 14px; font-weight: 600; line-height: 1.45; }
+.inbox-meta { color: var(--muted); font-size: 12.5px; margin-top: 3px; line-height: 1.5; }
+.inbox-meta code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.inbox-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.inbox-product { max-width: 230px; }
+
 /*
  * A narrow window: the rail becomes a wrapping row of tools above the page. This
  * lives at the end of the file because it overrides `.rail-nav`'s column direction,

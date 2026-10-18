@@ -1,0 +1,11 @@
+{
+  "name": "marketwatch-bridge",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A tiny MCP + pull-queue bridge so an AI assistant can hand numbers to the marketwatch extension.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "lint": "node --check src/worker.js && echo 'syntax ok'"
+  }
+}

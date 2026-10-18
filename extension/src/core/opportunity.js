@@ -335,6 +335,11 @@ export function computeOpportunity({
       : [],
     resaleSpread: Math.round(resaleSpread * 100) / 100,
     manualResalePrice: manual ? manualResalePrice : null,
+    // Where a hand-supplied price came from. A number typed in by the user and one
+    // imported from an assistant look identical in the arithmetic and are not the same
+    // thing in a verdict, so the card can say which it is.
+    manualResaleSource: manual ? product.manualResaleSource || "you" : null,
+    manualResaleDetail: manual ? product.manualResaleDetail || null : null,
     buyPrice: buyPrice === null ? null : Math.round(buyPrice * 100) / 100,
     resalePrice: resalePrice === null ? null : Math.round(resalePrice * 100) / 100,
     buySample: buyPrices.length,

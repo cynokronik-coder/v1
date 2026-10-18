@@ -43,7 +43,8 @@
     "https://api.brightdata.com/*",
     "https://api.keepa.com/*",
     "https://wikimedia.org/*",
-    "https://api.gdeltproject.org/*"
+    "https://api.gdeltproject.org/*",
+    "https://*.freebuff.page/*"
   ],
   "background": {
     "service_worker": "src/background.js",

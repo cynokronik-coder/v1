@@ -449,6 +449,12 @@ export function normalizeCatalogItem(raw, index = 0) {
     resaleSource: source,
     resaleSources,
     manualResalePrice,
+    // Provenance for a hand-supplied price: "you" when it was typed into the editor,
+    // "assistant" when it was imported and applied from the review inbox. Not scored -
+    // shown, because a price a model read somewhere and a price you read yourself
+    // deserve different labels on the card even though the maths is the same.
+    manualResaleSource: raw.manualResaleSource ? String(raw.manualResaleSource).slice(0, 40) : null,
+    manualResaleDetail: raw.manualResaleDetail ? String(raw.manualResaleDetail).slice(0, 160) : null,
     plausibleMinPrice: min,
     plausibleMaxPrice: max,
     wikipedia: raw.wikipedia ? String(raw.wikipedia) : null,
